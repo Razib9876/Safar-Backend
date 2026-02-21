@@ -13,7 +13,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://safar-frontend-pb25.onrender.com",
+    origin: ["https://safarapp.vercel.app"],
     credentials: true,
   }),
 );
