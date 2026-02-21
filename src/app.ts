@@ -13,7 +13,9 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["https://safarapp.vercel.app"],
+    origin: [
+      "https://vercel.com/razib9876s-projects/safarapp/3ma5yiUn4KGn1g457GTeMD79314J",
+    ],
     credentials: true,
   }),
 );
