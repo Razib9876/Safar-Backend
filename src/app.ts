@@ -13,7 +13,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: "https://safar-frontend-pb25.onrender.com",
     credentials: true,
   }),
 );
