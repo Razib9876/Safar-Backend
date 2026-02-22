@@ -61,31 +61,37 @@ export const approveDriver = async (id: Types.ObjectId) => {
   const driver = await Driver.findById(id);
   if (!driver) throw new ApiError(404, "Driver not found");
 
-  if (["pending", "rejected", "suspended"].includes(driver.status)) {
+  // Ensure status is a string before using includes
+  const currentStatus = driver.status || ""; // fallback to empty string
+
+  if (["pending", "rejected", "suspended"].includes(currentStatus)) {
     driver.status = "available";
     await driver.save();
   } else {
     throw new ApiError(
       400,
-      `Cannot approve driver from status ${driver.status}`,
+      `Cannot approve driver from status ${currentStatus}`,
     );
   }
+
   return findDriverById(id);
 };
-
 export const rejectDriver = async (id: Types.ObjectId) => {
   const driver = await Driver.findById(id);
   if (!driver) throw new ApiError(404, "Driver not found");
 
-  if (["available", "suspended", "pending"].includes(driver.status)) {
+  const currentStatus = driver.status || ""; // fallback to empty string
+
+  if (["available", "suspended", "pending"].includes(currentStatus)) {
     driver.status = "rejected";
     await driver.save();
   } else {
     throw new ApiError(
       400,
-      `Cannot reject driver from status ${driver.status}`,
+      `Cannot reject driver from status ${currentStatus}`,
     );
   }
+
   return findDriverById(id);
 };
 
@@ -114,11 +120,16 @@ export const addVehiclePhoto = async (
 ) => {
   const driver = await Driver.findById(driverId);
   if (!driver) throw new ApiError(404, "Driver not found");
-  if (!driver.vehicleDetails[vehicleIndex])
-    throw new ApiError(400, "Vehicle not found");
 
-  driver.vehicleDetails[vehicleIndex].photos.push(photoUrl);
+  const vehicle = driver.vehicleDetails[vehicleIndex];
+  if (!vehicle) throw new ApiError(400, "Vehicle not found");
+
+  // Make sure photos array exists
+  if (!vehicle.photos) vehicle.photos = [];
+
+  vehicle.photos.push(photoUrl);
   await driver.save();
+
   return findDriverById(driverId);
 };
 
@@ -182,12 +193,18 @@ export const deleteVehiclePhoto = async (
 ) => {
   const driver = await Driver.findById(driverId);
   if (!driver) throw new ApiError(404, "Driver not found");
-  if (!driver.vehicleDetails[vehicleIndex])
-    throw new ApiError(400, "Vehicle not found");
-  if (!driver.vehicleDetails[vehicleIndex].photos[photoIndex])
-    throw new ApiError(400, "Photo not found");
 
-  driver.vehicleDetails[vehicleIndex].photos.splice(photoIndex, 1);
+  const vehicle = driver.vehicleDetails[vehicleIndex];
+  if (!vehicle) throw new ApiError(400, "Vehicle not found");
+
+  // Ensure photos array exists
+  if (!vehicle.photos || vehicle.photos.length <= photoIndex) {
+    throw new ApiError(400, "Photo not found");
+  }
+
+  // Remove the photo
+  vehicle.photos.splice(photoIndex, 1);
+
   await driver.save();
   return findDriverById(driverId);
 };

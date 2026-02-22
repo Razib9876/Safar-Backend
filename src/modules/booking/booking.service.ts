@@ -79,7 +79,9 @@ export const confirmSelectedDriverQuote = async (
     throw new ApiError(404, "Booking not found");
   }
 
-  const selectedQuote = booking.driverQuote.id(quoteId);
+  const selectedQuote = booking.driverQuote.find(
+    (q) => q._id?.toString() === quoteId,
+  );
 
   if (!selectedQuote) {
     throw new ApiError(404, "Selected driver quote not found");
@@ -157,19 +159,26 @@ export const addDriverQuote = async (
 ): Promise<IBookingDoc | null> => {
   const booking = await Booking.findById(bookingId);
   if (!booking) return null;
+
   if (booking.status !== "pending" && booking.status !== "quoted") {
     throw new ApiError(400, "Booking not accepting quotes");
   }
+
   const quote: IDriverQuote = {
     _id: new Types.ObjectId(),
     driverId,
-    amount,
+    currentAmount: amount,
+    previousAmount: 0,
     status: "pending",
     createdAt: new Date(),
   };
-  booking.assignToDriver.push(quote);
+
+  booking.driverQuote.push(quote); // ✅ FIXED
+
   booking.status = "quoted";
+
   await booking.save();
+
   return findBookingById(bookingId);
 };
 
@@ -179,7 +188,9 @@ export const rejectQuote = async (
 ): Promise<IBookingDoc | null> => {
   const booking = await Booking.findById(bookingId);
   if (!booking) return null;
-  const quote = booking.assignToDriver.id(quoteId);
+  const quote = booking.assignToDriver.find(
+    (q) => q._id?.toString() === quoteId,
+  );
   if (!quote) throw new ApiError(404, "Quote not found");
   quote.status = "rejected_by_user";
   quote.rejectedAt = new Date();
@@ -190,10 +201,14 @@ export const rejectQuote = async (
 export const selectQuote = async (
   bookingId: Types.ObjectId,
   quoteId: string,
+  amount: number,
 ): Promise<IBookingDoc | null> => {
   const booking = await Booking.findById(bookingId);
   if (!booking) return null;
-  const quote = booking.assignToDriver.id(quoteId);
+  const quote = booking.assignToDriver.find(
+    (q) => q._id?.toString() === quoteId,
+  );
+
   if (!quote) throw new ApiError(404, "Quote not found");
   if (quote.status !== "pending")
     throw new ApiError(400, "Quote not available");

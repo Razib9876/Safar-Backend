@@ -13,6 +13,8 @@ export type BookingStatus =
   | "on_trip"
   | "completed"
   | "cancelled"
+  | "public"
+  | "assigned"
   | "rejected";
 
 export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
@@ -31,11 +33,12 @@ export interface IDriverQuote {
   createdAt: Date;
 }
 export interface IAssignByAdmin {
-  _id?: Types.ObjectId;
+  _id: Types.ObjectId;
   driverId: Types.ObjectId;
-  status: QuoteStatus;
-  rejectedAt?: Date;
+  amount: number;
+  status: "pending" | "accepted" | "rejected_by_user";
   createdAt: Date;
+  rejectedAt?: Date;
 }
 
 export interface IBooking {

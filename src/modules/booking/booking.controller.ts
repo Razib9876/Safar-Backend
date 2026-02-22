@@ -6,6 +6,7 @@ import { IBookingCreate, IBookingUpdate } from "./booking.interface";
 import { Booking } from "./booking.model";
 import { addOrUpdateDriverQuote } from "./booking.service";
 import { User } from "../user/user.model";
+import { IAssignByAdmin } from "./booking.interface";
 
 // Create booking
 export const create = async (
@@ -48,7 +49,12 @@ export const getById = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    let idParam = req.params.id;
+    if (Array.isArray(idParam)) {
+      idParam = idParam[0]; // take the first one if array
+    }
+
+    const id = new Types.ObjectId(idParam);
 
     const booking = await Booking.findById(id)
       .populate("userId", "name email phone role photoURL")
@@ -88,50 +94,25 @@ export const list = async (
   }
 };
 // get by user id
-// export const getBookingsByUser = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ): Promise<void> => {
-//   try {
-//     const { userId } = req.params;
-
-//     if (!Types.ObjectId.isValid(userId)) {
-//       throw new ApiError(400, "Invalid userId");
-//     }
-
-//     const bookings = await bookingService.getBookingsByUserId(
-//       new Types.ObjectId(userId),
-//     );
-
-//     res.status(200).json({
-//       success: true,
-//       data: bookings,
-//     });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
 export const getBookingsByUser = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const userIdParam = req.params.userId;
+    let { userId } = req.params;
 
-    // Ensure it's a string
-    if (!userIdParam || Array.isArray(userIdParam)) {
-      throw new ApiError(400, "Invalid userId");
+    // If userId is an array (e.g., from query param), take the first one
+    if (Array.isArray(userId)) {
+      userId = userId[0];
     }
 
-    if (!Types.ObjectId.isValid(userIdParam)) {
+    if (!Types.ObjectId.isValid(userId)) {
       throw new ApiError(400, "Invalid userId");
     }
 
     const bookings = await bookingService.getBookingsByUserId(
-      new Types.ObjectId(userIdParam),
+      new Types.ObjectId(userId),
     );
 
     res.status(200).json({
@@ -142,6 +123,7 @@ export const getBookingsByUser = async (
     next(error);
   }
 };
+
 // by user id and driverQuote status pending
 
 export const getUserBookingsWithPendingQuotes = async (
@@ -185,40 +167,18 @@ export const listRejected = async (
 };
 // get by user id, driverQuote status pending
 
-// export const listUserPendingQuoteBookings = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ) => {
-//   try {
-//     const { userId } = req.params;
-
-//     if (!Types.ObjectId.isValid(userId)) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Invalid user id",
-//       });
-//     }
-
-//     const bookings = await getUserBookingsWithPendingQuotes(
-//       new Types.ObjectId(userId),
-//     );
-
-//     res.status(200).json({
-//       success: true,
-//       data: bookings,
-//     });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 export const listUserPendingQuoteBookings = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const userId = req.params.userId as string;
+    let { userId } = req.params;
+
+    // Ensure userId is a string
+    if (Array.isArray(userId)) {
+      userId = userId[0];
+    }
 
     if (!Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
@@ -300,48 +260,18 @@ export const getBookingsByUserEmail = async (
 };
 
 // GET driverQuote array by driverId
-// export const getDriverQuotesByDriverId = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ) => {
-//   try {
-//     const driverId = req.params.driverId;
-
-//     if (!Types.ObjectId.isValid(driverId)) {
-//       throw new ApiError(400, "Valid driverId is required");
-//     }
-
-//     const bookings = await Booking.find({
-//       "driverQuote.driverId": new Types.ObjectId(driverId),
-//     }).lean();
-
-//     const result = bookings.map((booking) => {
-//       const matchedQuotes = booking.driverQuote.filter(
-//         (q) => q.driverId.toString() === driverId,
-//       );
-//       return {
-//         bookingId: booking._id,
-//         driverQuotes: matchedQuotes,
-//       };
-//     });
-
-//     res.status(200).json({
-//       success: true,
-//       results: result.length,
-//       data: result,
-//     });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 export const getDriverQuotesByDriverId = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const driverId = req.params.driverId as string;
+    let { driverId } = req.params;
+
+    // Normalize driverId to string in case it comes as an array
+    if (Array.isArray(driverId)) {
+      driverId = driverId[0];
+    }
 
     if (!Types.ObjectId.isValid(driverId)) {
       throw new ApiError(400, "Valid driverId is required");
@@ -370,60 +300,25 @@ export const getDriverQuotesByDriverId = async (
     next(error);
   }
 };
+
 // payment confirmed button will change this
-// export const confirmBookingWithDriver = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ): Promise<void> => {
-//   try {
-//     const { id, quoteId } = req.params;
-
-//     if (!Types.ObjectId.isValid(id)) {
-//       throw new ApiError(400, "Invalid bookingId");
-//     }
-
-//     if (!quoteId || Array.isArray(quoteId)) {
-//       throw new ApiError(400, "Invalid quoteId");
-//     }
-
-//     if (!Types.ObjectId.isValid(quoteId)) {
-//       throw new ApiError(400, "Invalid quoteId");
-//     }
-
-//     const bookingId = new Types.ObjectId(id);
-
-//     const updatedBooking = await bookingService.confirmSelectedDriverQuote(
-//       bookingId,
-//       quoteId,
-//     );
-
-//     res.status(200).json({
-//       success: true,
-//       message: "Booking confirmed successfully",
-//       data: updatedBooking,
-//     });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 export const confirmBookingWithDriver = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const quoteId = req.params.quoteId as string; // ✅ cast to string
-    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    let { id, quoteId } = req.params;
+
+    // Normalize params if they are arrays
+    if (Array.isArray(id)) id = id[0];
+    if (Array.isArray(quoteId)) quoteId = quoteId[0];
+
     if (!Types.ObjectId.isValid(id)) {
       throw new ApiError(400, "Invalid bookingId");
     }
 
-    if (!quoteId) {
-      throw new ApiError(400, "Invalid quoteId");
-    }
-
-    if (!Types.ObjectId.isValid(quoteId)) {
+    if (!quoteId || !Types.ObjectId.isValid(quoteId)) {
       throw new ApiError(400, "Invalid quoteId");
     }
 
@@ -452,7 +347,10 @@ export const getDriverQuotesByBookingId = async (
   next: NextFunction,
 ) => {
   try {
-    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    let { id } = req.params;
+
+    // Normalize in case id comes as an array
+    if (Array.isArray(id)) id = id[0];
 
     if (!Types.ObjectId.isValid(id)) {
       throw new ApiError(400, "Invalid bookingId");
@@ -477,7 +375,8 @@ export const makePublic = async (
   next: NextFunction,
 ): Promise<Response> => {
   try {
-    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    let { id } = req.params;
+    if (Array.isArray(id)) id = id[0];
 
     if (!Types.ObjectId.isValid(id)) {
       return res
@@ -491,8 +390,9 @@ export const makePublic = async (
         .status(404)
         .json({ success: false, message: "Booking not found" });
     }
-    booking.status = "public" as any;
 
+    // Ensure "public" exists in BookingStatus type
+    booking.status = "public";
     await booking.save();
 
     const populatedBooking = await Booking.findById(id)
@@ -517,8 +417,10 @@ export const makeQuotedWithDriver = async (
   next: NextFunction,
 ): Promise<Response> => {
   try {
-    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    let { id } = req.params;
     const { driverId, amount } = req.body;
+
+    if (Array.isArray(id)) id = id[0]; // fix string | string[] issue
 
     if (!Types.ObjectId.isValid(id)) {
       return res
@@ -539,15 +441,17 @@ export const makeQuotedWithDriver = async (
         .json({ success: false, message: "Booking not found" });
     }
 
+    // make sure "assigned" exists in BookingStatus type
     booking.status = "assigned";
 
-    const quote = {
+    const quote: IAssignByAdmin = {
       _id: new Types.ObjectId(),
       driverId: new Types.ObjectId(driverId),
-      amount: amount ?? 0,
-      status: "pending" as any, // ✅ Cast to any for QuoteStatus enum
+      amount: amount ?? 0, // make sure IAssignByAdmin has amount
+      status: "pending",
       createdAt: new Date(),
     };
+
     booking.assignToDriver.push(quote);
 
     await booking.save();
@@ -574,15 +478,17 @@ export const makeRejected = async (
   next: NextFunction,
 ): Promise<Response> => {
   try {
-    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const idParam = Array.isArray(req.params.id)
+      ? req.params.id[0]
+      : req.params.id;
 
-    if (!Types.ObjectId.isValid(id)) {
+    if (!Types.ObjectId.isValid(idParam)) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid booking ID" });
     }
 
-    const booking = await Booking.findById(id);
+    const booking = await Booking.findById(idParam);
     if (!booking) {
       return res
         .status(404)
@@ -592,7 +498,7 @@ export const makeRejected = async (
     booking.status = "rejected";
     await booking.save();
 
-    const populatedBooking = await Booking.findById(id)
+    const populatedBooking = await Booking.findById(idParam)
       .populate("userId", "name email phone role photoURL")
       .populate("driverId");
 
@@ -628,28 +534,13 @@ export const getRejectedBookings = async (
   }
 };
 
-// export const update = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ): Promise<void> => {
-//   try {
-//     const id = new Types.ObjectId(req.params.id);
-//     const data = req.body as IBookingUpdate;
-//     const booking = await bookingService.updateBooking(id, data);
-//     if (!booking) throw new ApiError(404, "Booking not found");
-//     res.status(200).json({ success: true, data: booking });
-//   } catch (e) {
-//     next(e);
-//   }
-// };
 export const update = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    // ✅ Ensure id is a single string
+    // Ensure id is a string
     const idParam = Array.isArray(req.params.id)
       ? req.params.id[0]
       : req.params.id;
@@ -669,47 +560,30 @@ export const update = async (
     next(e);
   }
 };
-// export const addQuote = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ): Promise<void> => {
-//   try {
-//     const id = new Types.ObjectId(req.params.id);
-//     const driverId = new Types.ObjectId(req.body.driverId);
-//     const amount = Number(req.body.amount);
-//     const booking = await bookingService.addDriverQuote(id, driverId, amount);
-//     if (!booking) throw new ApiError(404, "Booking not found");
-//     res.status(200).json({ success: true, data: booking });
-//   } catch (e) {
-//     next(e);
-//   }
-// };
 export const addQuote = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    // Ensure single string from possibly array params
+    // Ensure id and driverId are strings
     const idParam = Array.isArray(req.params.id)
       ? req.params.id[0]
       : req.params.id;
-    const driverParam = Array.isArray(req.body.driverId)
+    const driverIdParam = Array.isArray(req.body.driverId)
       ? req.body.driverId[0]
       : req.body.driverId;
 
-    // Validate ObjectId
     if (!Types.ObjectId.isValid(idParam)) {
       throw new ApiError(400, "Invalid booking ID");
     }
-    if (!Types.ObjectId.isValid(driverParam)) {
+
+    if (!Types.ObjectId.isValid(driverIdParam)) {
       throw new ApiError(400, "Invalid driver ID");
     }
 
     const id = new Types.ObjectId(idParam);
-    const driverId = new Types.ObjectId(driverParam);
-
+    const driverId = new Types.ObjectId(driverIdParam);
     const amount = Number(req.body.amount);
 
     const booking = await bookingService.addDriverQuote(id, driverId, amount);
@@ -721,28 +595,13 @@ export const addQuote = async (
   }
 };
 
-// export const rejectQuote = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ): Promise<void> => {
-//   try {
-//     const id = new Types.ObjectId(req.params.id);
-//     const { quoteId } = req.params;
-//     const booking = await bookingService.rejectQuote(id, quoteId);
-//     if (!booking) throw new ApiError(404, "Booking not found");
-//     res.status(200).json({ success: true, data: booking });
-//   } catch (e) {
-//     next(e);
-//   }
-// };
 export const rejectQuote = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    // Normalize id and quoteId in case they are arrays
+    // Ensure params are strings
     const idParam = Array.isArray(req.params.id)
       ? req.params.id[0]
       : req.params.id;
@@ -750,11 +609,11 @@ export const rejectQuote = async (
       ? req.params.quoteId[0]
       : req.params.quoteId;
 
-    // Validate ObjectId
     if (!Types.ObjectId.isValid(idParam)) {
       throw new ApiError(400, "Invalid booking ID");
     }
-    if (!quoteIdParam || !Types.ObjectId.isValid(quoteIdParam)) {
+
+    if (!quoteIdParam) {
       throw new ApiError(400, "Invalid quote ID");
     }
 
@@ -768,48 +627,40 @@ export const rejectQuote = async (
     next(e);
   }
 };
-// export const selectQuote = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ): Promise<void> => {
-//   try {
-//     const id = new Types.ObjectId(req.params.id);
-//     const { quoteId } = req.body;
-//     if (!quoteId) throw new ApiError(400, "quoteId is required");
-//     const booking = await bookingService.selectQuote(id, quoteId);
-//     if (!booking) throw new ApiError(404, "Booking not found");
-//     res.status(200).json({ success: true, data: booking });
-//   } catch (e) {
-//     next(e);
-//   }
-// };
+
 export const selectQuote = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    // Normalize id in case it's an array
+    // Ensure params are strings
     const idParam = Array.isArray(req.params.id)
       ? req.params.id[0]
       : req.params.id;
+    const { quoteId, amount } = req.body;
 
     if (!Types.ObjectId.isValid(idParam)) {
       throw new ApiError(400, "Invalid booking ID");
     }
 
-    const id = new Types.ObjectId(idParam);
-
-    // Validate quoteId from body
-    const quoteIdParam = Array.isArray(req.body.quoteId)
-      ? req.body.quoteId[0]
-      : req.body.quoteId;
-    if (!quoteIdParam || !Types.ObjectId.isValid(quoteIdParam)) {
+    if (!quoteId || Array.isArray(quoteId)) {
       throw new ApiError(400, "Invalid quoteId");
     }
 
-    const booking = await bookingService.selectQuote(id, quoteIdParam);
+    if (amount === undefined || isNaN(Number(amount))) {
+      throw new ApiError(400, "Amount is required and must be a number");
+    }
+
+    const bookingId = new Types.ObjectId(idParam);
+
+    // Pass all 3 arguments to the service
+    const booking = await bookingService.selectQuote(
+      bookingId,
+      quoteId,
+      Number(amount),
+    );
+
     if (!booking) throw new ApiError(404, "Booking not found");
 
     res.status(200).json({ success: true, data: booking });
@@ -817,7 +668,6 @@ export const selectQuote = async (
     next(e);
   }
 };
-
 // to get pending bookings for driver dashboard
 export const listAvailableForDriver = async (
   req: Request,
@@ -865,17 +715,24 @@ export const sendDriverQuote = async (
   next: NextFunction,
 ) => {
   try {
-    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    // Ensure id is a single string
+    const idParam = Array.isArray(req.params.id)
+      ? req.params.id[0]
+      : req.params.id;
+    // Ensure driverId is a single string
+    const driverIdParam = Array.isArray(req.body.driverId)
+      ? req.body.driverId[0]
+      : req.body.driverId;
 
-    const { driverId, amount } = req.body;
+    const { amount } = req.body;
 
-    if (!Types.ObjectId.isValid(id)) {
+    if (!Types.ObjectId.isValid(idParam)) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid booking id" });
     }
 
-    if (!Types.ObjectId.isValid(driverId)) {
+    if (!Types.ObjectId.isValid(driverIdParam)) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid driver id" });
@@ -889,8 +746,8 @@ export const sendDriverQuote = async (
 
     // Add or update the driver quote
     const updatedBooking = await addOrUpdateDriverQuote(
-      new Types.ObjectId(id),
-      new Types.ObjectId(driverId),
+      new Types.ObjectId(idParam),
+      new Types.ObjectId(driverIdParam),
       amount,
     );
 
@@ -903,27 +760,13 @@ export const sendDriverQuote = async (
   }
 };
 
-// export const complete = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ): Promise<void> => {
-//   try {
-//     const id = new Types.ObjectId(req.params.id);
-//     const booking = await bookingService.completeBooking(id);
-//     if (!booking) throw new ApiError(404, "Booking not found");
-//     res.status(200).json({ success: true, data: booking });
-//   } catch (e) {
-//     next(e);
-//   }
-// };
 export const complete = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    // Normalize id in case it's an array
+    // Ensure we have a single string
     const idParam = Array.isArray(req.params.id)
       ? req.params.id[0]
       : req.params.id;
@@ -932,9 +775,9 @@ export const complete = async (
       throw new ApiError(400, "Invalid booking ID");
     }
 
-    const id = new Types.ObjectId(idParam);
-
-    const booking = await bookingService.completeBooking(id);
+    const booking = await bookingService.completeBooking(
+      new Types.ObjectId(idParam),
+    );
     if (!booking) throw new ApiError(404, "Booking not found");
 
     res.status(200).json({ success: true, data: booking });
@@ -942,6 +785,7 @@ export const complete = async (
     next(e);
   }
 };
+
 export const listCompleted = async (
   req: Request,
   res: Response,
@@ -964,23 +808,43 @@ export const updateBookingStatus = async (
   next: NextFunction,
 ): Promise<Response> => {
   try {
-    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const { status } = req.body;
+    // Ensure we have a single string for the ID
+    const idParam = Array.isArray(req.params.id)
+      ? req.params.id[0]
+      : req.params.id;
 
-    if (!Types.ObjectId.isValid(id)) {
+    if (!Types.ObjectId.isValid(idParam)) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid booking ID" });
     }
 
-    const booking = await Booking.findById(id);
+    const booking = await Booking.findById(idParam);
     if (!booking) {
       return res
         .status(404)
         .json({ success: false, message: "Booking not found" });
     }
 
-    booking.status = status;
+    // Optionally, validate the status against allowed values
+    const allowedStatuses = [
+      "draft",
+      "pending",
+      "quoted",
+      "payment_pending",
+      "confirmed",
+      "on_trip",
+      "completed",
+      "cancelled",
+      "rejected",
+    ] as const;
+    if (!allowedStatuses.includes(req.body.status)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid status value" });
+    }
+
+    booking.status = req.body.status;
     await booking.save();
 
     return res
@@ -992,29 +856,13 @@ export const updateBookingStatus = async (
   }
 };
 
-// export const verifyOtp = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ): Promise<void> => {
-//   try {
-//     const id = new Types.ObjectId(req.params.id);
-//     const { otp } = req.body;
-//     if (!otp) throw new ApiError(400, "otp is required");
-//     const valid = await bookingService.verifyCompletionOtp(id, otp);
-//     if (!valid) throw new ApiError(400, "Invalid OTP");
-//     res.status(200).json({ success: true, message: "OTP verified" });
-//   } catch (e) {
-//     next(e);
-//   }
-// };
 export const verifyOtp = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    // Normalize id in case it's an array
+    // Ensure we have a single string for the ID
     const idParam = Array.isArray(req.params.id)
       ? req.params.id[0]
       : req.params.id;
@@ -1023,12 +871,13 @@ export const verifyOtp = async (
       throw new ApiError(400, "Invalid booking ID");
     }
 
-    const id = new Types.ObjectId(idParam);
-
+    const bookingId = new Types.ObjectId(idParam);
     const { otp } = req.body;
-    if (!otp) throw new ApiError(400, "otp is required");
 
-    const valid = await bookingService.verifyCompletionOtp(id, otp);
+    if (!otp) throw new ApiError(400, "OTP is required");
+
+    const valid = await bookingService.verifyCompletionOtp(bookingId, otp);
+
     if (!valid) throw new ApiError(400, "Invalid OTP");
 
     res.status(200).json({ success: true, message: "OTP verified" });
@@ -1036,33 +885,13 @@ export const verifyOtp = async (
     next(e);
   }
 };
-// export const cancel = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ): Promise<void> => {
-//   try {
-//     const id = new Types.ObjectId(req.params.id);
-//     const cancellationReason = req.body.cancellationReason as
-//       | string
-//       | undefined;
-//     const booking = await bookingService.updateBooking(id, {
-//       status: "cancelled",
-//       cancellationReason,
-//     });
-//     if (!booking) throw new ApiError(404, "Booking not found");
-//     res.status(200).json({ success: true, data: booking });
-//   } catch (e) {
-//     next(e);
-//   }
-// };
 export const cancel = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    // Normalize id in case it's an array
+    // Normalize req.params.id to a single string
     const idParam = Array.isArray(req.params.id)
       ? req.params.id[0]
       : req.params.id;
@@ -1071,13 +900,12 @@ export const cancel = async (
       throw new ApiError(400, "Invalid booking ID");
     }
 
-    const id = new Types.ObjectId(idParam);
-
+    const bookingId = new Types.ObjectId(idParam);
     const cancellationReason = req.body.cancellationReason as
       | string
       | undefined;
 
-    const booking = await bookingService.updateBooking(id, {
+    const booking = await bookingService.updateBooking(bookingId, {
       status: "cancelled",
       cancellationReason,
     });

@@ -28,7 +28,9 @@ export interface IUserCreate {
 
 export interface IUserUpdate {
   name?: string;
+  email?: string;
   phone?: string;
+  role?: UserRole;
+  status?: string;
   photoURL?: string;
-  status?: UserStatus;
 }
