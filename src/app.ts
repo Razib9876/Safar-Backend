@@ -7,19 +7,18 @@ import paymentRoutes from "./modules/payment/payment.router";
 import dotenv from "dotenv";
 
 import { errorHandler } from "./middleware/error.middleware";
-import { optionalAuth } from "./middleware/auth.middleware";
 
 const app = express();
 
 app.use(
   cors({
-    origin: ["https://safarapp-jiach8y1f-razib9876s-projects.vercel.app"],
+    origin: ["https://safarapp.vercel.app"],
     credentials: true,
   }),
 );
 app.use(express.json());
 
-app.get("/api/health", (_req, res) => {
+app.get("/", (_req, res) => {
   res.json({ success: true, message: "Safar API is running" });
 });
 
