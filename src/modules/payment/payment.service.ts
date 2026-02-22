@@ -51,6 +51,7 @@ const initiatePayment = async (payload: {
       payment[0].paidAt = new Date();
       await payment[0].save({ session });
 
+      // Now TS knows booking.payment exists
       booking.payment = payment[0]._id;
       booking.status = "confirmed";
       booking.paymentStatus = "paid";
@@ -60,7 +61,6 @@ const initiatePayment = async (payload: {
       payment[0].status = "failed";
       await payment[0].save({ session });
     }
-
     await session.commitTransaction();
     session.endSession();
 

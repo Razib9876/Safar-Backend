@@ -61,6 +61,7 @@ export interface IBooking {
 
   status: BookingStatus;
   paymentStatus: PaymentStatus;
+  payment?: Types.ObjectId;
 
   totalAmount?: number;
   isPublic: boolean;

@@ -99,6 +99,10 @@ const bookingSchema = new Schema<IBookingDoc>(
       enum: ["pending", "paid", "failed", "refunded"],
       default: "pending",
     },
+    payment: {
+      type: Schema.Types.ObjectId,
+      ref: "Payment",
+    },
 
     totalAmount: { type: Number, default: 0 },
     isPublic: { type: Boolean, default: true },
