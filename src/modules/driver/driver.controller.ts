@@ -25,15 +25,40 @@ export const create = async (
 };
 
 // Get driver by ID
+// export const getById = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const id = new Types.ObjectId(req.params.id);
+//     const driver = await driverService.findDriverById(id);
+//     if (!driver) throw new ApiError(404, "Driver not found");
+//     res.status(200).json({ success: true, data: driver });
+//   } catch (e) {
+//     next(e);
+//   }
+// };
+
 export const getById = async (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+): Promise<void> => {
   try {
-    const id = new Types.ObjectId(req.params.id);
-    const driver = await driverService.findDriverById(id);
-    if (!driver) throw new ApiError(404, "Driver not found");
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    if (!Types.ObjectId.isValid(id)) {
+      throw new ApiError(400, "Invalid driver ID");
+    }
+
+    const driverId = new Types.ObjectId(id);
+    const driver = await driverService.findDriverById(driverId);
+
+    if (!driver) {
+      throw new ApiError(404, "Driver not found");
+    }
+
     res.status(200).json({ success: true, data: driver });
   } catch (e) {
     next(e);
@@ -41,21 +66,49 @@ export const getById = async (
 };
 
 // Get driver by User ID
+// export const getByUserId = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const userId = new Types.ObjectId(req.params.userId);
+//     const driver = await driverService.findDriverByUserId(userId);
+//     if (!driver) throw new ApiError(404, "Driver not found");
+//     res.status(200).json({ success: true, data: driver });
+//   } catch (e) {
+//     next(e);
+//   }
+// };
+
 export const getByUserId = async (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+): Promise<void> => {
   try {
-    const userId = new Types.ObjectId(req.params.userId);
-    const driver = await driverService.findDriverByUserId(userId);
-    if (!driver) throw new ApiError(404, "Driver not found");
+    // Ensure we have a single string, even if params come as array
+    const userIdParam = Array.isArray(req.params.userId)
+      ? req.params.userId[0]
+      : req.params.userId;
+
+    if (!userIdParam || !Types.ObjectId.isValid(userIdParam)) {
+      throw new ApiError(400, "Invalid user ID");
+    }
+
+    const driver = await driverService.findDriverByUserId(
+      new Types.ObjectId(userIdParam),
+    );
+
+    if (!driver) {
+      throw new ApiError(404, "Driver not found");
+    }
+
     res.status(200).json({ success: true, data: driver });
   } catch (e) {
     next(e);
   }
 };
-
 // List drivers with optional status filter
 export const list = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -103,23 +156,46 @@ export const getOnRideDrivers = async (
 };
 
 // GET drivers by status "available"
-export const getAvailableDrivers = async (req, res) => {
+// export const getAvailableDrivers = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const drivers = await Driver.find({ status: "available" })
+//       .populate("userId", "email")
+//       .populate("activeVehicle");
+
+//     res.status(200).json({
+//       status: "success",
+//       results: drivers.length,
+//       data: drivers,
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ status: "error", message: "Server error" });
+//   }
+// };
+export const getAvailableDrivers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const drivers = await Driver.find({ status: "available" })
       .populate("userId", "email")
       .populate("activeVehicle");
 
     res.status(200).json({
-      status: "success",
+      success: true,
       results: drivers.length,
       data: drivers,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ status: "error", message: "Server error" });
+    next(err); // pass the error to the global error handler
   }
 };
-
 export const getSuspendedDrivers = async (
   req: Request,
   res: Response,
@@ -137,13 +213,40 @@ export const getSuspendedDrivers = async (
 };
 
 // Suspend a driver (change status from "available" to "suspended")
+// export const suspendDriver = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const driverId = new Types.ObjectId(req.params.id);
+
+//     const driver = await Driver.findById(driverId);
+//     if (!driver) throw new ApiError(404, "Driver not found");
+
+//     driver.status = "suspended";
+//     await driver.save();
+
+//     res.status(200).json({ success: true, data: driver });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
 export const suspendDriver = async (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+): Promise<void> => {
   try {
-    const driverId = new Types.ObjectId(req.params.id);
+    const idParam = Array.isArray(req.params.id)
+      ? req.params.id[0]
+      : req.params.id;
+
+    if (!Types.ObjectId.isValid(idParam)) {
+      throw new ApiError(400, "Invalid driver ID");
+    }
+
+    const driverId = new Types.ObjectId(idParam);
 
     const driver = await Driver.findById(driverId);
     if (!driver) throw new ApiError(404, "Driver not found");
@@ -157,12 +260,27 @@ export const suspendDriver = async (
   }
 };
 
+// export const getRejectedDrivers = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   quoted;
+//   try {
+//     const page = Number(req.query.page) || 1;
+//     const limit = Number(req.query.limit) || 20;
+
+//     const drivers = await listRejectedDrivers({ page, limit });
+//     res.status(200).json({ success: true, data: drivers });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
 export const getRejectedDrivers = async (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
-  quoted;
+): Promise<void> => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 20;
@@ -175,29 +293,104 @@ export const getRejectedDrivers = async (
 };
 
 // Update driver
+// export const update = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const id = new Types.ObjectId(req.params.id);
+//     const data = req.body as IDriverUpdate;
+//     const driver = await driverService.updateDriver(id, data);
+//     res.status(200).json({ success: true, data: driver });
+//   } catch (e) {
+//     next(e);
+//   }
+// };
 export const update = async (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+): Promise<void> => {
   try {
-    const id = new Types.ObjectId(req.params.id);
+    const idParam = Array.isArray(req.params.id)
+      ? req.params.id[0]
+      : req.params.id;
+
+    if (!Types.ObjectId.isValid(idParam)) {
+      throw new ApiError(400, "Invalid driver ID");
+    }
+
+    const id = new Types.ObjectId(idParam);
     const data = req.body as IDriverUpdate;
     const driver = await driverService.updateDriver(id, data);
+
     res.status(200).json({ success: true, data: driver });
   } catch (e) {
     next(e);
   }
 };
-
 // Approve driver
+// export const approveDriver = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ): Promise<void> => {
+//   try {
+//     const { id } = req.params;
+
+//     if (!Types.ObjectId.isValid(id)) {
+//       throw new ApiError(400, "Invalid driver ID");
+//     }
+
+//     const driver = await Driver.findById(id).populate("userId");
+//     if (!driver) throw new ApiError(404, "Driver not found");
+
+//     driver.status = "available";
+//     driver.approvedByAdmin = true;
+//     await driver.save();
+
+//     const user = await User.findById(driver.userId._id);
+//     if (user && user.role === "rider") {
+//       user.role = "driver";
+//       await user.save();
+//     }
+
+//     // Use lean() or toObject() to attach activeVehicle manually
+//     const populatedDriver = await Driver.findById(id)
+//       .populate("userId", "name email role phone photo")
+//       .lean();
+
+//     if (populatedDriver && populatedDriver.vehicleDetails?.length > 0) {
+//       // pick the first vehicle as activeVehicle
+//       populatedDriver.activeVehicle = populatedDriver.vehicleDetails[0];
+//       populatedDriver.activeVehiclePhoto =
+//         populatedDriver.vehicleDetails[0].mainPhoto;
+//     } else {
+//       populatedDriver.activeVehicle = null;
+//       populatedDriver.activeVehiclePhoto = null;
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       data: populatedDriver,
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+type PopulatedDriverWithActiveVehicle = ReturnType<typeof Driver> & {
+  activeVehicle?: any | null;
+  activeVehiclePhoto?: string | null;
+};
+
 export const approveDriver = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     if (!Types.ObjectId.isValid(id)) {
       throw new ApiError(400, "Invalid driver ID");
@@ -206,23 +399,25 @@ export const approveDriver = async (
     const driver = await Driver.findById(id).populate("userId");
     if (!driver) throw new ApiError(404, "Driver not found");
 
+    // Update driver
     driver.status = "available";
     driver.approvedByAdmin = true;
     await driver.save();
 
+    // Update user role if necessary
     const user = await User.findById(driver.userId._id);
     if (user && user.role === "rider") {
       user.role = "driver";
       await user.save();
     }
 
-    // Use lean() or toObject() to attach activeVehicle manually
-    const populatedDriver = await Driver.findById(id)
+    // Populate driver and cast to extended type
+    const populatedDriver = (await Driver.findById(id)
       .populate("userId", "name email role phone photo")
-      .lean();
+      .lean()) as PopulatedDriverWithActiveVehicle;
 
+    // Attach activeVehicle and activeVehiclePhoto
     if (populatedDriver && populatedDriver.vehicleDetails?.length > 0) {
-      // pick the first vehicle as activeVehicle
       populatedDriver.activeVehicle = populatedDriver.vehicleDetails[0];
       populatedDriver.activeVehiclePhoto =
         populatedDriver.vehicleDetails[0].mainPhoto;
@@ -239,7 +434,6 @@ export const approveDriver = async (
     next(error);
   }
 };
-
 // Reject driver
 export const reject = async (
   req: Request,
@@ -292,19 +486,44 @@ export const getDriverByUserEmail = async (
   }
 };
 // Vehicle photo management
+// export const addVehiclePhoto = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const driverId = new Types.ObjectId(req.params.id);
+//     const { vehicleIndex, photoUrl } = req.body;
+//     const driver = await driverService.addVehiclePhoto(
+//       driverId,
+//       vehicleIndex,
+//       photoUrl,
+//     );
+//     res.status(200).json({ success: true, data: driver });
+//   } catch (e) {
+//     next(e);
+//   }
+// };
 export const addVehiclePhoto = async (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+): Promise<void> => {
   try {
     const driverId = new Types.ObjectId(req.params.id);
     const { vehicleIndex, photoUrl } = req.body;
-    const driver = await driverService.addVehiclePhoto(
+
+    // Explicit type for returned driver
+    const driver: Driver | null = await driverService.addVehiclePhoto(
       driverId,
       vehicleIndex,
       photoUrl,
     );
+
+    if (!driver) {
+      throw new ApiError(404, "Driver not found");
+    }
+
     res.status(200).json({ success: true, data: driver });
   } catch (e) {
     next(e);
