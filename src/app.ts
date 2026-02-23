@@ -96,17 +96,26 @@ dotenv.config();
 const app = express();
 
 // ✅ Define allowed origins first
-// const allowedOrigins = [
-//   "http://localhost:5173", // local dev
-//   "https://safar-app-1hrv.vercel.app", // deployed frontend
-// ];
+const allowedOrigins = [
+  "http://localhost:5173", // local dev
+  "https://safarapps.netlify.app", // deployed frontend
+];
 
 // CORS fix
+
 app.use(
   cors({
-    origin: [
-      "https://safarapps.netlify.app/", // production frontend
-    ],
+    origin: function (origin, callback) {
+      // allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = `The CORS policy for this site does not allow access from the specified Origin.`;
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   }),
 );
