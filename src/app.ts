@@ -99,12 +99,12 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
-      "https://thriving-endurance-production.up.railway.app",
-    ], // allow both local and deployed frontend
+      "http://localhost:5173", // local development
+      "https://safarapp.vercel.app", // deployed frontend
+    ],
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
+    credentials: true, // needed if sending cookies or auth headers
   }),
 );
 
