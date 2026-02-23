@@ -1,35 +1,35 @@
-import express from "express";
-import cors from "cors";
-import userRouter from "./modules/user/user.router";
-import driverRouter from "./modules/driver/driver.router";
-import bookingRouter from "./modules/booking/booking.router";
-import paymentRoutes from "./modules/payment/payment.router";
-import dotenv from "dotenv";
+// import express from "express";
+// import cors from "cors";
+// import userRouter from "./modules/user/user.router";
+// import driverRouter from "./modules/driver/driver.router";
+// import bookingRouter from "./modules/booking/booking.router";
+// import paymentRoutes from "./modules/payment/payment.router";
+// import dotenv from "dotenv";
 
-import { errorHandler } from "./middleware/error.middleware";
+// import { errorHandler } from "./middleware/error.middleware";
 
-const app = express();
+// const app = express();
 
-app.use(
-  cors({
-    origin: ["http://localhost:5173"],
-    credentials: true,
-  }),
-);
-app.use(express.json());
+// app.use(
+//   cors({
+//     origin: ["http://localhost:5173"],
+//     credentials: true,
+//   }),
+// );
+// app.use(express.json());
 
-app.get("/", (_req, res) => {
-  res.json({ success: true, message: "Safar API is running" });
-});
+// app.get("/", (_req, res) => {
+//   res.json({ success: true, message: "Safar API is running" });
+// });
 
-app.use("/api/users", userRouter);
-app.use("/api/drivers", driverRouter);
-app.use("/api/bookings", bookingRouter);
-app.use("/api/payments", paymentRoutes);
+// app.use("/api/users", userRouter);
+// app.use("/api/drivers", driverRouter);
+// app.use("/api/bookings", bookingRouter);
+// app.use("/api/payments", paymentRoutes);
 
-app.use(errorHandler);
+// app.use(errorHandler);
 
-export default app;
+// export default app;
 // import express from "express";
 // import cors from "cors";
 // import userRouter from "./modules/user/user.router";
@@ -81,3 +81,47 @@ export default app;
 // app.use(errorHandler);
 
 // export default app;
+
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import userRouter from "./modules/user/user.router";
+import driverRouter from "./modules/driver/driver.router";
+import bookingRouter from "./modules/booking/booking.router";
+import paymentRoutes from "./modules/payment/payment.router";
+import { errorHandler } from "./middleware/error.middleware";
+
+dotenv.config();
+
+const app = express();
+
+// CORS fix
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://thriving-endurance-production.up.railway.app",
+    ], // allow both local and deployed frontend
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  }),
+);
+
+app.use(express.json());
+
+// Test route
+app.get("/", (_req, res) => {
+  res.json({ success: true, message: "Safar API is running" });
+});
+
+// Routes
+app.use("/api/users", userRouter);
+app.use("/api/drivers", driverRouter);
+app.use("/api/bookings", bookingRouter);
+app.use("/api/payments", paymentRoutes);
+
+// Global error handler
+app.use(errorHandler);
+
+export default app;
