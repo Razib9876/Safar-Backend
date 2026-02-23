@@ -98,7 +98,7 @@ const app = express();
 // ✅ Define allowed origins first
 const allowedOrigins = [
   "http://localhost:5173", // local dev
-  "https://safarapp.vercel.app", // deployed frontend
+  "https://safar-app-1hrv.vercel.app", // deployed frontend
 ];
 
 // CORS fix
