@@ -30,7 +30,6 @@
 // app.use(errorHandler);
 
 // export default app;
-
 import express from "express";
 import cors from "cors";
 import userRouter from "./modules/user/user.router";
@@ -41,23 +40,34 @@ import dotenv from "dotenv";
 
 import { errorHandler } from "./middleware/error.middleware";
 
+dotenv.config();
+
 const app = express();
 
-// CORS config
+// Better CORS setup
 app.use(
   cors({
-    origin: ["https://safarapp.vercel.app"],
+    origin: "https://safarapp.vercel.app",
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // allow preflight
-    allowedHeaders: ["Content-Type", "Authorization"], // allow auth header
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   }),
 );
 
-// Handle preflight OPTIONS requests
-app.options("*", cors()); // this enables CORS for all routes/options requests
+// Handle preflight OPTIONS requests globally
+app.options(
+  "*",
+  cors({
+    origin: "https://safarapp.vercel.app",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  }),
+);
 
 app.use(express.json());
 
+// Routes
 app.get("/", (_req, res) => {
   res.json({ success: true, message: "Safar API is running" });
 });
