@@ -105,7 +105,7 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "https://safar-app-1hrv.vercel.app", // production frontend
+      "https://safarapps.netlify.app/", // production frontend
     ],
     credentials: true,
   }),
