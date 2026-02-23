@@ -4,9 +4,9 @@
   "description": "Safar backend - Node, Express, MongoDB, Mongoose, TypeScript",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node server.js",
-    "dev": "nodemon  server.js"
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
