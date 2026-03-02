@@ -137,7 +137,7 @@ export const addOrUpdateDriverQuote = async (
       _id: new Types.ObjectId(),
       driverId,
       currentAmount: amount,
-      previousAmount: 0,
+      previousAmount: "",
       status: "pending",
       createdAt: new Date(),
     });
@@ -168,7 +168,7 @@ export const addDriverQuote = async (
     _id: new Types.ObjectId(),
     driverId,
     currentAmount: amount,
-    previousAmount: 0,
+    previousAmount: "",
     status: "pending",
     createdAt: new Date(),
   };

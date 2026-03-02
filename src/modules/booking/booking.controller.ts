@@ -341,6 +341,35 @@ export const confirmBookingWithDriver = async (
 /**
  * Get driverQuote array by bookingId
  */
+// export const getDriverQuotesByBookingId = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     let { id } = req.params;
+
+//     // Normalize in case id comes as an array
+//     if (Array.isArray(id)) id = id[0];
+
+//     if (!Types.ObjectId.isValid(id)) {
+//       throw new ApiError(400, "Invalid bookingId");
+//     }
+
+//     const booking = await Booking.findById(id).lean();
+//     if (!booking) {
+//       throw new ApiError(404, "Booking not found");
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       data: booking.driverQuote || [],
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
 export const getDriverQuotesByBookingId = async (
   req: Request,
   res: Response,
@@ -349,14 +378,20 @@ export const getDriverQuotesByBookingId = async (
   try {
     let { id } = req.params;
 
-    // Normalize in case id comes as an array
     if (Array.isArray(id)) id = id[0];
 
     if (!Types.ObjectId.isValid(id)) {
       throw new ApiError(400, "Invalid bookingId");
     }
 
-    const booking = await Booking.findById(id).lean();
+    const booking = await Booking.findById(id)
+      .populate({
+        path: "driverQuote.driverId",
+        model: "Driver",
+        select: "name phoneNumber profileImage vehicleDetails",
+      })
+      .lean();
+
     if (!booking) {
       throw new ApiError(404, "Booking not found");
     }

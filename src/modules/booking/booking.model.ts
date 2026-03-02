@@ -20,7 +20,7 @@ const driverQuoteSchema = new Schema<IDriverQuote>(
   {
     driverId: { type: Schema.Types.ObjectId, ref: "Driver" },
     currentAmount: { type: Number, required: true },
-    previousAmount: { type: Number, default: "0" },
+    previousAmount: { type: Number },
     status: {
       type: String,
       enum: ["pending", "confirmed", "rejected"],
