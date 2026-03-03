@@ -67,6 +67,33 @@ export const getById = async (
     next(e);
   }
 };
+// export const list = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ): Promise<void> => {
+//   try {
+//     const userId = req.query.userId as string | undefined;
+//     const driverId = req.query.driverId as string | undefined;
+//     const status = req.query.status as string | undefined;
+
+//     const filter: any = {};
+
+//     if (userId) filter.userId = new Types.ObjectId(userId);
+//     if (driverId) filter.driverId = new Types.ObjectId(driverId);
+//     if (status) filter.status = status;
+
+//     const bookings = await Booking.find(filter)
+//       .populate("userId", "name email phone role photoURL")
+//       .populate("driverId")
+//       .sort({ createdAt: -1 });
+
+//     res.status(200).json({ success: true, data: bookings });
+//   } catch (e) {
+//     next(e);
+//   }
+// };
+
 export const list = async (
   req: Request,
   res: Response,
@@ -86,6 +113,11 @@ export const list = async (
     const bookings = await Booking.find(filter)
       .populate("userId", "name email phone role photoURL")
       .populate("driverId")
+      .populate({
+        path: "driverQuote.driverId",
+        model: "Driver",
+        select: "name phoneNumber photo vehicleDetails",
+      })
       .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, data: bookings });
