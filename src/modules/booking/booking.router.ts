@@ -82,7 +82,8 @@ router.patch(
   validate,
   bookingController.makeRejected,
 );
-
+// Cancel booking
+router.post("/cancel/:bookingId", bookingController.cancelBooking);
 router.post(
   "/:id/quotes",
   idParamRules(),

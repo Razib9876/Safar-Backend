@@ -94,6 +94,33 @@ export const getById = async (
 //   }
 // };
 
+// Cancel booking
+export const cancelBooking = async (req: Request, res: Response) => {
+  try {
+    const { bookingId } = req.params;
+
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking)
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
+
+    booking.status = "cancelled";
+    booking.cancellationReason = "User cancelled";
+    await booking.save();
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Booking cancelled" });
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};
+
 export const list = async (
   req: Request,
   res: Response,
