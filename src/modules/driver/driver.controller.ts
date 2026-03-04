@@ -410,15 +410,10 @@ export const updateVehicleMainPhoto = async (
 //     next(err);
 //   }
 // };
-export const rideStart = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const rideStart = async (req: Request, res: Response) => {
   try {
     const { driverId, bookingId } = req.params;
 
-    // 1️⃣ Find booking
     const booking = await Booking.findById(bookingId);
     if (!booking) {
       return res.status(404).json({
@@ -427,7 +422,6 @@ export const rideStart = async (
       });
     }
 
-    // 2️⃣ Find driver
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({
@@ -436,32 +430,33 @@ export const rideStart = async (
       });
     }
 
-    // 3️⃣ Check booking assigned to this driver
-    if (!booking.driverId || booking.driverId.toString() !== driverId) {
+    if (!booking.driverId?.equals(driver._id)) {
       return res.status(403).json({
         success: false,
         message: "This booking is not assigned to this driver",
       });
     }
 
-    // 4️⃣ Update booking
+    // ✅ Update booking
     booking.pickStatus = "picked";
+    booking.status = "on_trip"; // VERY IMPORTANT
     booking.pickupTime = new Date();
     await booking.save();
 
-    // 5️⃣ Update driver
+    // ✅ Update driver
     driver.status = "on-ride";
     await driver.save();
 
-    return res.status(200).json({
+    return res.json({
       success: true,
       message: "Ride started successfully",
     });
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error("RIDE START ERROR:", error);
+
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: error.message,
     });
   }
 };
