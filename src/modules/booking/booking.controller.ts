@@ -117,7 +117,10 @@ export const cancelBooking = async (req: Request, res: Response) => {
     console.error(err);
     return res
       .status(500)
-      .json({ success: false, message: "Internal server error" });
+      .json({
+        success: false,
+        message: "Internal server error from booking controller",
+      });
   }
 };
 
