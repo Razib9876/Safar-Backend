@@ -107,6 +107,10 @@ export const updateDriverRules = () => [
   body("drivingLicense.photos").optional().isArray({ min: 2, max: 2 }),
   body("drivingLicense.verified").optional().isBoolean(),
 ];
+// driver.validation.ts
+
+export const bookingIdParamRules = () =>
+  param("bookingId").isMongoId().withMessage("Valid bookingId is required");
 
 export const idParamRules = () =>
   param("id").isMongoId().withMessage("Valid id is required");

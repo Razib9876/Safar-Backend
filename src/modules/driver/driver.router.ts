@@ -7,6 +7,7 @@ import {
   userIdParamRules,
   validate,
 } from "./driver.validation";
+import { bookingIdParamRules } from "./driver.validation";
 
 const router = Router();
 
@@ -74,6 +75,13 @@ router.delete(
   idParamRules(),
   validate,
   driverController.deleteVehiclePhoto,
+);
+
+router.post(
+  "/ride-start/:bookingId",
+  bookingIdParamRules(), // <- use the correct param validator
+  validate,
+  driverController.rideStart,
 );
 
 router.get("/:id", idParamRules(), validate, driverController.getById);
