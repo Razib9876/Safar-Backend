@@ -416,9 +416,10 @@ export const rideStart = async (
   res: Response,
   next: NextFunction,
 ) => {
+  console.log("🚀 rideStart route hit!", req.params);
   try {
     let { driverId, bookingId } = req.params;
-
+    console.log("driverId:", driverId, "bookingId:", bookingId);
     // Narrow type: ensure string
     if (Array.isArray(driverId)) driverId = driverId[0];
     if (Array.isArray(bookingId)) bookingId = bookingId[0];
