@@ -109,31 +109,78 @@ export const updateDriverRules = () => [
 ];
 // driver.validation.ts
 // Validate driverId in request body for ride-start
-export const rideStartBodyRules = () =>
-  body("driverId")
-    .exists()
-    .withMessage("driverId is required")
-    .bail()
-    .isMongoId()
-    .withMessage("Valid driverId is required");
-export const bookingIdParamRules = () =>
-  param("bookingId").isMongoId().withMessage("Valid bookingId is required");
+// export const rideStartBodyRules = (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ): void => {
+//   const errors = validationResult(req);
+//   if (errors.isEmpty()) return next();
+
+//   const message = errors
+//     .array()
+//     .map((e) => e.msg)
+//     .join("; ");
+
+//   // Respond with consistent JSON
+//   res.status(400).json({
+//     success: false,
+//     message,
+//     errors: errors.array(), // optional: full details
+//   });
+// };
+// export const bookingIdParamRules = () =>
+//   param("bookingId").isMongoId().withMessage("Valid bookingId is required");
+
+// export const idParamRules = () =>
+//   param("id").isMongoId().withMessage("Valid id is required");
+// export const userIdParamRules = () =>
+//   param("userId").isMongoId().withMessage("Valid userId is required");
+
+// export const validate = (
+//   req: Request,
+//   _res: Response,
+//   next: NextFunction,
+// ): void => {
+//   const errors = validationResult(req);
+//   if (errors.isEmpty()) return next();
+//   const message = errors
+//     .array()
+//     .map((e) => e.msg)
+//     .join("; ");
+//   next(new ApiError(400, message));
+// };
+/* ================= PARAM VALIDATION ================= */
 
 export const idParamRules = () =>
   param("id").isMongoId().withMessage("Valid id is required");
+
 export const userIdParamRules = () =>
   param("userId").isMongoId().withMessage("Valid userId is required");
 
-export const validate = (
-  req: Request,
-  _res: Response,
-  next: NextFunction,
-): void => {
+export const bookingIdParamRules = () =>
+  param("bookingId").isMongoId().withMessage("Valid bookingId is required");
+
+/* ================= RIDE-START BODY VALIDATION ================= */
+
+export const rideStartRules = () => [
+  body("driverId").isMongoId().withMessage("Valid driverId is required"),
+];
+
+/* ================= VALIDATE MIDDLEWARE ================= */
+
+export const validate = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (errors.isEmpty()) return next();
+
   const message = errors
     .array()
     .map((e) => e.msg)
     .join("; ");
-  next(new ApiError(400, message));
+
+  res.status(400).json({
+    success: false,
+    message,
+    errors: errors.array(),
+  });
 };

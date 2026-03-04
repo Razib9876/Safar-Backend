@@ -6,8 +6,9 @@ import {
   idParamRules,
   userIdParamRules,
   validate,
+  rideStartRules,
 } from "./driver.validation";
-import { bookingIdParamRules, rideStartBodyRules } from "./driver.validation";
+import { bookingIdParamRules } from "./driver.validation";
 
 const router = Router();
 
@@ -77,8 +78,8 @@ router.delete(
 router.post(
   "/ride-start/:bookingId",
   bookingIdParamRules(), // validate :bookingId param
-  rideStartBodyRules(), // validate driverId in body
-  validate, // run validation result
+  rideStartRules(), // validate driverId in body
+  validate, // check validation results
   driverController.rideStart,
 );
 
