@@ -99,6 +99,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173", // local dev
   "https://safarapps.netlify.app", // deployed frontend
+  "https://hoppscotch.io", // Hoppscotch
 ];
 
 // CORS fix
