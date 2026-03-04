@@ -12,10 +12,12 @@ export const errorHandler = (
     return;
   }
   console.error(err);
-  res
-    .status(500)
-    .json({
-      success: false,
-      message: "Internal server error from error middleware",
-    });
+  const message =
+    process.env.NODE_ENV === "production"
+      ? "Internal server error"
+      : (err as Error).message;
+  res.status(500).json({
+    success: false,
+    message,
+  });
 };
