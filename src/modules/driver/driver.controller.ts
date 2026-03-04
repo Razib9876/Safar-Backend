@@ -389,6 +389,58 @@ export const updateVehicleMainPhoto = async (
     next(e);
   }
 };
+// export const rideStart = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const driverId = new Types.ObjectId(req.body.driverId); // from frontend
+//     const bookingId = new Types.ObjectId(req.params.bookingId);
+
+//     const data = await driverService.startRide(driverId, bookingId);
+
+//     res.json({
+//       success: true,
+//       message: "Ride started successfully",
+//       data,
+//     });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+export const rideStart = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    // Ensure driverId is a string, even if TS thinks it could be string[]
+    const driverIdRaw = req.body.driverId;
+    const driverId = Array.isArray(driverIdRaw) ? driverIdRaw[0] : driverIdRaw;
+
+    // Ensure bookingId is a string
+    const bookingIdRaw = req.params.bookingId;
+    const bookingId = Array.isArray(bookingIdRaw)
+      ? bookingIdRaw[0]
+      : bookingIdRaw;
+
+    // Convert to ObjectId
+    const driverObjectId = new Types.ObjectId(driverId);
+    const bookingObjectId = new Types.ObjectId(bookingId);
+
+    const data = await driverService.startRide(driverObjectId, bookingObjectId);
+
+    res.json({
+      success: true,
+      message: "Ride started successfully",
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 export const deleteVehiclePhoto = async (
   req: Request,
   res: Response,

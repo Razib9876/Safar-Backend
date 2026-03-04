@@ -63,6 +63,12 @@ router.patch(
   validate,
   driverController.updateVehicleMainPhoto,
 );
+router.post(
+  "/ride-start/:bookingId",
+  idParamRules(),
+  validate,
+  driverController.rideStart,
+);
 router.delete(
   "/:id/vehicle/photo",
   idParamRules(),

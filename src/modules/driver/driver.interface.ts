@@ -20,7 +20,13 @@ export interface IDriverCreate {
   name: string;
   phoneNumber: string;
   photo?: string;
-  status?: "pending" | "available" | "approved" | "rejected" | "suspended";
+  status?:
+    | "pending"
+    | "on-ride"
+    | "available"
+    | "approved"
+    | "rejected"
+    | "suspended";
   approvedByAdmin?: boolean;
   vehicleDetails: IVehicleDetails[];
   nid: IDocument;

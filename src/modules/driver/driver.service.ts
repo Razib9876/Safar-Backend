@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 import { Driver } from "./driver.model";
 import { IDriverCreate, IDriverUpdate } from "./driver.interface";
 import { ApiError } from "../../utils/ApiError";
+import { Booking } from "../booking/booking.model";
 
 const userFields = "name email phone role photo";
 
@@ -75,6 +76,38 @@ export const approveDriver = async (id: Types.ObjectId) => {
   }
 
   return findDriverById(id);
+};
+
+/**
+ * Driver starts the ride for a booking
+ */
+export const startRide = async (
+  driverId: Types.ObjectId,
+  bookingId: Types.ObjectId,
+) => {
+  const booking = await Booking.findById(bookingId);
+  if (!booking) throw new ApiError(404, "Booking not found");
+
+  // check if the booking is assigned to this driver
+  if (
+    !booking.driverId ||
+    booking.driverId.toString() !== driverId.toString()
+  ) {
+    throw new ApiError(403, "This booking is not assigned to this driver");
+  }
+
+  // Update booking
+  booking.pickStatus = "picked";
+  booking.pickupTime = new Date();
+  await booking.save();
+
+  // Update driver
+  const driver = await Driver.findById(driverId);
+  if (!driver) throw new ApiError(404, "Driver not found");
+  driver.status = "on-ride";
+  await driver.save();
+
+  return { booking, driver };
 };
 export const rejectDriver = async (id: Types.ObjectId) => {
   const driver = await Driver.findById(id);
