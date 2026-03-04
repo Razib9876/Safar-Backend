@@ -225,6 +225,19 @@ const generateOtp = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+// no 1- driver current trip e dekhte pabe
+export const getConfirmedPaidBookingsByDriver = async (
+  driverId: Types.ObjectId,
+): Promise<IBookingDoc[]> => {
+  return Booking.find({
+    driverId,
+    status: "confirmed",
+    paymentStatus: "paid",
+  })
+    .populate("userId", "name email phone") // populate user info
+    .populate("driverId", "name phoneNumber vehicleDetails") // driver info if needed
+    .sort({ dateFrom: -1 });
+};
 export const completeBooking = async (
   bookingId: Types.ObjectId,
 ): Promise<IBookingDoc | null> => {

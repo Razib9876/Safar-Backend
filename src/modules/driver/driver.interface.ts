@@ -25,6 +25,7 @@ export interface IDriverCreate {
   vehicleDetails: IVehicleDetails[];
   nid: IDocument;
   drivingLicense: IDocument;
+  totalEarnings?: number;
   extraDrivingLicense?: IDocument;
   updatedBy?: Types.ObjectId | string;
 }
@@ -33,11 +34,18 @@ export interface IDriverUpdate {
   name?: string;
   phoneNumber?: string;
   photo?: string;
-  status?: "pending" | "approved" | "rejected" | "suspended";
+  status?:
+    | "pending"
+    | "available"
+    | "approved"
+    | "on-ride"
+    | "rejected"
+    | "suspended";
   approvedByAdmin?: boolean;
   vehicleDetails?: IVehicleDetails[];
   nid?: IDocument;
   drivingLicense?: IDocument;
+  totalEarnings: number;
   extraDrivingLicense?: IDocument;
   updatedBy?: Types.ObjectId | string;
 }

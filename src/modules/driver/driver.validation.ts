@@ -80,6 +80,10 @@ export const updateDriverRules = () => [
     ])
     .withMessage("Invalid status"),
   body("approvedByAdmin").optional().isBoolean(),
+  body("totalEarnings")
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage("Total earnings must be a positive number"),
 
   // vehicleDetails array
   body("vehicleDetails").optional().isArray(),

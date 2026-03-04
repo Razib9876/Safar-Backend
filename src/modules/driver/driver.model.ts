@@ -56,10 +56,12 @@ const driverSchema = new Schema<IDriverDoc>(
       default: "pending",
       required: true,
     },
+
     approvedByAdmin: { type: Boolean, default: false },
     vehicleDetails: { type: [vehicleSchema], required: true },
     nid: { type: documentSchema, required: true },
     drivingLicense: { type: documentSchema, required: true },
+    totalEarnings: { type: Number, default: 0, min: 0 },
     extraDrivingLicense: { type: documentSchema },
     updatedBy: { type: Schema.Types.ObjectId, ref: "User" },
   },

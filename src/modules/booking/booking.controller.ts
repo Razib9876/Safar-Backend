@@ -950,6 +950,25 @@ export const updateBookingStatus = async (
   }
 };
 
+// no 1- driver current trip e dekhte pabe
+export const getDriverConfirmedBookings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const driverId = Array.isArray(req.params.driverId)
+      ? req.params.driverId[0]
+      : req.params.driverId; // get driver id from params
+    const bookings = await bookingService.getConfirmedPaidBookingsByDriver(
+      new Types.ObjectId(driverId),
+    );
+    res.status(200).json({ success: true, data: bookings });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const verifyOtp = async (
   req: Request,
   res: Response,

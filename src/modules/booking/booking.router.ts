@@ -105,6 +105,13 @@ router.patch(
   validate,
   bookingController.selectQuote,
 );
+// GET confirmed & paid bookings for a driver
+router.get(
+  "/driver/:driverId/confirmed-bookings",
+  driverIdParamRules(),
+  validate,
+  bookingController.getDriverConfirmedBookings,
+);
 router.post(
   "/:id/complete",
   idParamRules(),
