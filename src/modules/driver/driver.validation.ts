@@ -151,7 +151,11 @@ export const updateDriverRules = () => [
 //   next(new ApiError(400, message));
 // };
 /* ================= PARAM VALIDATION ================= */
+// Validate bookingId param
+export const bookingIdParamRules = () =>
+  param("bookingId").isMongoId().withMessage("Valid bookingId is required");
 
+// Validate driverId param (already exists as idParamRules)
 export const idParamRules = () =>
   param("id").isMongoId().withMessage("Valid id is required");
 

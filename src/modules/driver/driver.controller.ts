@@ -8,6 +8,7 @@ import { listSuspendedDrivers } from "./driver.service";
 import { listOnRideDrivers } from "./driver.service";
 import { listRejectedDrivers } from "./driver.service";
 import { User } from "../user/user.model";
+import { Booking } from "../booking/booking.model";
 
 // Create driver
 export const create = async (
@@ -409,52 +410,44 @@ export const updateVehicleMainPhoto = async (
 //     next(err);
 //   }
 // };
-
 export const rideStart = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    // Extract and validate that these are strings, not arrays
-    let driverId = req.body.driverId;
-    let bookingId = req.params.bookingId;
+    const { driverId, bookingId } = req.params;
 
-    if (Array.isArray(driverId)) {
-      throw new ApiError(400, "driverId must be a single string");
-    }
-    if (Array.isArray(bookingId)) {
-      throw new ApiError(400, "bookingId must be a single string");
-    }
+    // Find booking
+    const booking = await Booking.findById(bookingId);
+    if (!booking) throw new ApiError(404, "Booking not found");
 
-    if (!driverId || !Types.ObjectId.isValid(driverId)) {
-      throw new ApiError(400, "Valid driverId is required");
-    }
+    // Find driver
+    const driver = await Driver.findById(driverId);
+    if (!driver) throw new ApiError(404, "Driver not found");
 
-    if (!bookingId || !Types.ObjectId.isValid(bookingId)) {
-      throw new ApiError(400, "Valid bookingId is required");
+    // Check that booking is assigned to this driver
+    if (!booking.driverId || booking.driverId.toString() !== driverId) {
+      throw new ApiError(403, "This booking is not assigned to this driver");
     }
 
-    // Convert to ObjectId safely
-    const driverObjectId = new Types.ObjectId(driverId);
-    const bookingObjectId = new Types.ObjectId(bookingId);
+    // Update booking
+    booking.pickStatus = "picked";
+    booking.pickupTime = new Date();
+    await booking.save();
 
-    // Call the service
-    const data = await driverService.startRide(driverObjectId, bookingObjectId);
+    // Update driver
+    driver.status = "on-ride";
+    await driver.save();
 
-    res.status(200).json({
+    res.json({
       success: true,
       message: "Ride started successfully",
-      data,
+      booking,
+      driver,
     });
-  } catch (err: any) {
-    if (err instanceof ApiError) {
-      return res
-        .status(err.statusCode)
-        .json({ success: false, message: err.message });
-    }
-    console.error(err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+  } catch (error) {
+    next(error);
   }
 };
 export const deleteVehiclePhoto = async (

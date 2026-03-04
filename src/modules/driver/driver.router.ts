@@ -14,13 +14,7 @@ const router = Router();
 
 // Create driver
 router.post("/create", createDriverRules(), validate, driverController.create);
-router.post(
-  "/ride-start/:bookingId",
-  bookingIdParamRules(), // validate :bookingId param
-  rideStartRules(), // validate driverId in body
-  validate, // check validation results
-  driverController.rideStart,
-);
+
 router.get("/pending", driverController.getPendingDrivers);
 router.get("/available", driverController.getAvailableDrivers);
 
@@ -77,6 +71,21 @@ router.delete(
   idParamRules(),
   validate,
   driverController.deleteVehiclePhoto,
+);
+router.post(
+  "/ride-start/:bookingId",
+  bookingIdParamRules(), // validate :bookingId param
+  rideStartRules(), // validate driverId in body
+  validate, // check validation results
+  driverController.rideStart,
+);
+// Ride start API
+router.patch(
+  "/:driverId/ride-start/:bookingId",
+  idParamRules(), // validate driverId
+  bookingIdParamRules(), // validate bookingId
+  validate, // run validation results
+  driverController.rideStart,
 );
 
 // ...
