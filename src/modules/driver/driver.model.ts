@@ -45,7 +45,14 @@ const driverSchema = new Schema<IDriverDoc>(
     photo: { type: String },
     status: {
       type: String,
-      enum: ["pending", "available", "rejected", "suspended", "on-ride"],
+      enum: [
+        "pending",
+        "available",
+        "approved",
+        "rejected",
+        "suspended",
+        "on-ride",
+      ],
       default: "pending",
       required: true,
     },

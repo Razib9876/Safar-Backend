@@ -70,7 +70,14 @@ export const updateDriverRules = () => [
   body("photo").optional().trim(),
   body("status")
     .optional()
-    .isIn(["pending", "approved", "rejected", "suspended", "on-ride"])
+    .isIn([
+      "pending",
+      "available",
+      "approved",
+      "rejected",
+      "suspended",
+      "on-ride",
+    ])
     .withMessage("Invalid status"),
   body("approvedByAdmin").optional().isBoolean(),
 
