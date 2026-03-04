@@ -418,36 +418,51 @@ export const rideStart = async (
   try {
     const { driverId, bookingId } = req.params;
 
-    // Find booking
+    // 1️⃣ Find booking
     const booking = await Booking.findById(bookingId);
-    if (!booking) throw new ApiError(404, "Booking not found");
-
-    // Find driver
-    const driver = await Driver.findById(driverId);
-    if (!driver) throw new ApiError(404, "Driver not found");
-
-    // Check that booking is assigned to this driver
-    if (!booking.driverId || booking.driverId.toString() !== driverId) {
-      throw new ApiError(403, "This booking is not assigned to this driver");
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
     }
 
-    // Update booking
+    // 2️⃣ Find driver
+    const driver = await Driver.findById(driverId);
+    if (!driver) {
+      return res.status(404).json({
+        success: false,
+        message: "Driver not found",
+      });
+    }
+
+    // 3️⃣ Check booking assigned to this driver
+    if (!booking.driverId || booking.driverId.toString() !== driverId) {
+      return res.status(403).json({
+        success: false,
+        message: "This booking is not assigned to this driver",
+      });
+    }
+
+    // 4️⃣ Update booking
     booking.pickStatus = "picked";
     booking.pickupTime = new Date();
     await booking.save();
 
-    // Update driver
+    // 5️⃣ Update driver
     driver.status = "on-ride";
     await driver.save();
 
-    res.json({
+    return res.status(200).json({
       success: true,
       message: "Ride started successfully",
-      booking,
-      driver,
     });
   } catch (error) {
-    next(error);
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
 export const deleteVehiclePhoto = async (

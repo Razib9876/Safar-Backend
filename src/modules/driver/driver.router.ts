@@ -6,9 +6,9 @@ import {
   idParamRules,
   userIdParamRules,
   validate,
-  rideStartRules,
 } from "./driver.validation";
 import { bookingIdParamRules } from "./driver.validation";
+import { driverIdParamRules } from "../booking/booking.validation";
 
 const router = Router();
 
@@ -72,22 +72,13 @@ router.delete(
   validate,
   driverController.deleteVehiclePhoto,
 );
-router.post(
-  "/ride-start/:bookingId",
-  bookingIdParamRules(), // validate :bookingId param
-  rideStartRules(), // validate driverId in body
-  validate, // check validation results
-  driverController.rideStart,
-);
-// Ride start API
 router.patch(
   "/:driverId/ride-start/:bookingId",
-  idParamRules(), // validate driverId
-  bookingIdParamRules(), // validate bookingId
-  validate, // run validation results
+  driverIdParamRules(),
+  bookingIdParamRules(),
+  validate,
   driverController.rideStart,
 );
-
 // ...
 
 router.get("/:id", idParamRules(), validate, driverController.getById);
