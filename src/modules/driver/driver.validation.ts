@@ -108,7 +108,14 @@ export const updateDriverRules = () => [
   body("drivingLicense.verified").optional().isBoolean(),
 ];
 // driver.validation.ts
-
+// Validate driverId in request body for ride-start
+export const rideStartBodyRules = () =>
+  body("driverId")
+    .exists()
+    .withMessage("driverId is required")
+    .bail()
+    .isMongoId()
+    .withMessage("Valid driverId is required");
 export const bookingIdParamRules = () =>
   param("bookingId").isMongoId().withMessage("Valid bookingId is required");
 
