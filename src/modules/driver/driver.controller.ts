@@ -410,36 +410,58 @@ export const updateVehicleMainPhoto = async (
 //     next(err);
 //   }
 // };
-export const rideStart = async (req: Request, res: Response) => {
+// PATCH /drivers/:driverId/ride-start/:bookingId
+export const rideStart = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const { driverId, bookingId } = req.params;
+    const driverId = Array.isArray(req.params.driverId)
+      ? req.params.driverId[0]
+      : req.params.driverId;
+    const bookingId = Array.isArray(req.params.bookingId)
+      ? req.params.bookingId[0]
+      : req.params.bookingId;
 
+    // Validate ObjectId
+    if (!Types.ObjectId.isValid(driverId))
+      throw new ApiError(400, "Invalid driverId");
+    if (!Types.ObjectId.isValid(bookingId))
+      throw new ApiError(400, "Invalid bookingId");
+
+    // Fetch booking
     const booking = await Booking.findById(bookingId);
-    if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found",
-      });
-    }
+    if (!booking)
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
 
+    // Fetch driver
     const driver = await Driver.findById(driverId);
-    if (!driver) {
-      return res.status(404).json({
-        success: false,
-        message: "Driver not found",
-      });
-    }
+    if (!driver)
+      return res
+        .status(404)
+        .json({ success: false, message: "Driver not found" });
 
-    if (!booking.driverId?.equals(driver._id)) {
+    // Ensure booking is assigned to driver
+    if (!booking.driverId || !booking.driverId.equals(driver._id)) {
       return res.status(403).json({
         success: false,
         message: "This booking is not assigned to this driver",
       });
     }
 
+    // Prevent duplicate ride start
+    if (booking.status === "on_trip") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Ride already started" });
+    }
+
     // ✅ Update booking
     booking.pickStatus = "picked";
-    booking.status = "on_trip"; // VERY IMPORTANT
+    booking.status = "on_trip";
     booking.pickupTime = new Date();
     await booking.save();
 
@@ -447,16 +469,23 @@ export const rideStart = async (req: Request, res: Response) => {
     driver.status = "on-ride";
     await driver.save();
 
-    return res.json({
+    return res.status(200).json({
       success: true,
       message: "Ride started successfully",
+      data: {
+        bookingId: booking._id,
+        driverId: driver._id,
+        pickStatus: booking.pickStatus,
+        bookingStatus: booking.status,
+        pickupTime: booking.pickupTime,
+        driverStatus: driver.status,
+      },
     });
   } catch (error: any) {
     console.error("RIDE START ERROR:", error);
-
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Internal server error",
     });
   }
 };

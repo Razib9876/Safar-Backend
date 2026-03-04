@@ -88,22 +88,21 @@ export const startRide = async (
   const booking = await Booking.findById(bookingId);
   if (!booking) throw new ApiError(404, "Booking not found");
 
-  // check if the booking is assigned to this driver
-  if (
-    !booking.driverId ||
-    booking.driverId.toString() !== driverId.toString()
-  ) {
+  if (!booking.driverId || !booking.driverId.equals(driverId)) {
     throw new ApiError(403, "This booking is not assigned to this driver");
   }
 
-  // Update booking
+  if (booking.status === "on_trip")
+    throw new ApiError(400, "Ride already started");
+
   booking.pickStatus = "picked";
+  booking.status = "on_trip";
   booking.pickupTime = new Date();
   await booking.save();
 
-  // Update driver
   const driver = await Driver.findById(driverId);
   if (!driver) throw new ApiError(404, "Driver not found");
+
   driver.status = "on-ride";
   await driver.save();
 
