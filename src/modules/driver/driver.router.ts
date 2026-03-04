@@ -11,7 +11,13 @@ import { bookingIdParamRules } from "./driver.validation";
 import { driverIdParamRules } from "../booking/booking.validation";
 
 const router = Router();
-
+router.patch(
+  "/:driverId/ride-start/:bookingId",
+  driverIdParamRules(),
+  bookingIdParamRules(),
+  validate,
+  driverController.rideStart,
+);
 // Create driver
 router.post("/create", createDriverRules(), validate, driverController.create);
 
@@ -72,13 +78,7 @@ router.delete(
   validate,
   driverController.deleteVehiclePhoto,
 );
-router.patch(
-  "/:driverId/ride-start/:bookingId",
-  driverIdParamRules(),
-  bookingIdParamRules(),
-  validate,
-  driverController.rideStart,
-);
+
 // ...
 
 router.get("/:id", idParamRules(), validate, driverController.getById);

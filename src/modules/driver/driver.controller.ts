@@ -417,12 +417,11 @@ export const rideStart = async (
   next: NextFunction,
 ) => {
   try {
-    const driverId = Array.isArray(req.params.driverId)
-      ? req.params.driverId[0]
-      : req.params.driverId;
-    const bookingId = Array.isArray(req.params.bookingId)
-      ? req.params.bookingId[0]
-      : req.params.bookingId;
+    let { driverId, bookingId } = req.params;
+
+    // Narrow type: ensure string
+    if (Array.isArray(driverId)) driverId = driverId[0];
+    if (Array.isArray(bookingId)) bookingId = bookingId[0];
 
     // Validate ObjectId
     if (!Types.ObjectId.isValid(driverId))
@@ -430,42 +429,38 @@ export const rideStart = async (
     if (!Types.ObjectId.isValid(bookingId))
       throw new ApiError(400, "Invalid bookingId");
 
-    // Fetch booking
     const booking = await Booking.findById(bookingId);
     if (!booking)
       return res
         .status(404)
         .json({ success: false, message: "Booking not found" });
 
-    // Fetch driver
     const driver = await Driver.findById(driverId);
     if (!driver)
       return res
         .status(404)
         .json({ success: false, message: "Driver not found" });
 
-    // Ensure booking is assigned to driver
     if (!booking.driverId || !booking.driverId.equals(driver._id)) {
-      return res.status(403).json({
-        success: false,
-        message: "This booking is not assigned to this driver",
-      });
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "This booking is not assigned to this driver",
+        });
     }
 
-    // Prevent duplicate ride start
     if (booking.status === "on_trip") {
       return res
         .status(400)
         .json({ success: false, message: "Ride already started" });
     }
 
-    // ✅ Update booking
     booking.pickStatus = "picked";
     booking.status = "on_trip";
     booking.pickupTime = new Date();
     await booking.save();
 
-    // ✅ Update driver
     driver.status = "on-ride";
     await driver.save();
 
