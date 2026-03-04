@@ -11,6 +11,7 @@ import {
   quoteIdParamRules,
   validate,
 } from "./booking.validation";
+import { bookingIdParamRules } from "../driver/driver.validation";
 
 const router = Router();
 router.patch(
@@ -117,6 +118,13 @@ router.post(
   idParamRules(),
   validate,
   bookingController.complete,
+);
+// PATCH /bookings/:bookingId/drop-off
+router.patch(
+  "/:bookingId/drop-off",
+  bookingIdParamRules(),
+  validate,
+  bookingController.dropOffBooking,
 );
 router.post(
   "/:id/verify-otp",

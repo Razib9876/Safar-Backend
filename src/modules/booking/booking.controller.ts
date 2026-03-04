@@ -115,12 +115,10 @@ export const cancelBooking = async (req: Request, res: Response) => {
       .json({ success: true, message: "Booking cancelled" });
   } catch (err) {
     console.error(err);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error from booking controller",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error from booking controller",
+    });
   }
 };
 
@@ -153,6 +151,55 @@ export const list = async (
     res.status(200).json({ success: true, data: bookings });
   } catch (e) {
     next(e);
+  }
+};
+// PATCH /bookings/:bookingId/drop-off
+
+// PATCH /bookings/:bookingId/drop-off
+export const dropOffBooking = async (req: Request, res: Response) => {
+  try {
+    let { bookingId } = req.params;
+
+    // Ensure it's a string
+    if (Array.isArray(bookingId)) bookingId = bookingId[0];
+
+    // Validate ObjectId
+    if (!Types.ObjectId.isValid(bookingId)) {
+      throw new ApiError(400, "Invalid bookingId");
+    }
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
+    }
+
+    // Update booking
+    booking.pickStatus = "dropped";
+    booking.status = "completed"; // use correct enum/type
+
+    // Generate a new OTP for completion (4-digit random)
+    booking.completionOtp = Math.floor(1000 + Math.random() * 9000).toString();
+
+    await booking.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Booking dropped off successfully",
+      data: {
+        bookingId: booking._id,
+        pickStatus: booking.pickStatus,
+        status: booking.status,
+        completionOtp: booking.completionOtp,
+      },
+    });
+  } catch (error: any) {
+    console.error("DROP OFF ERROR:", error);
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
   }
 };
 // get by user id
