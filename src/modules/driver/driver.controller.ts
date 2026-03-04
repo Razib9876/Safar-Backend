@@ -442,12 +442,10 @@ export const rideStart = async (
         .json({ success: false, message: "Driver not found" });
 
     if (!booking.driverId || !booking.driverId.equals(driver._id)) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "This booking is not assigned to this driver",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "This booking is not assigned to this driver",
+      });
     }
 
     if (booking.status === "on_trip") {
@@ -480,7 +478,7 @@ export const rideStart = async (
     console.error("RIDE START ERROR:", error);
     return res.status(error.statusCode || 500).json({
       success: false,
-      message: error.message || "Internal server error",
+      message: error.message || "Internal server error hahahahahahahahha",
     });
   }
 };
