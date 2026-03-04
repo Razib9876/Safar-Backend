@@ -231,7 +231,7 @@ export const getConfirmedPaidBookingsByDriver = async (
 ): Promise<IBookingDoc[]> => {
   return Booking.find({
     driverId,
-    status: "confirmed",
+    status: { $in: ["confirmed", "on_trip"] },
     paymentStatus: "paid",
   })
     .populate("userId", "name email phone") // populate user info

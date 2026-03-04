@@ -126,12 +126,11 @@ router.patch(
   validate,
   bookingController.dropOffBooking,
 );
-router.post(
-  "/:id/verify-otp",
-  idParamRules(),
-  verifyOtpBodyRules(),
+router.patch(
+  "/:bookingId/verify-completion-otp",
+  bookingIdParamRules(),
   validate,
-  bookingController.verifyOtp,
+  bookingController.verifyCompletionOtp,
 );
 router.patch("/:id/cancel", idParamRules(), validate, bookingController.cancel);
 
