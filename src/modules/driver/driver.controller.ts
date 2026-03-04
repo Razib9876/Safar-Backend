@@ -416,29 +416,45 @@ export const rideStart = async (
   next: NextFunction,
 ) => {
   try {
-    // Ensure driverId is a string, even if TS thinks it could be string[]
-    const driverIdRaw = req.body.driverId;
-    const driverId = Array.isArray(driverIdRaw) ? driverIdRaw[0] : driverIdRaw;
+    // Extract and validate that these are strings, not arrays
+    let driverId = req.body.driverId;
+    let bookingId = req.params.bookingId;
 
-    // Ensure bookingId is a string
-    const bookingIdRaw = req.params.bookingId;
-    const bookingId = Array.isArray(bookingIdRaw)
-      ? bookingIdRaw[0]
-      : bookingIdRaw;
+    if (Array.isArray(driverId)) {
+      throw new ApiError(400, "driverId must be a single string");
+    }
+    if (Array.isArray(bookingId)) {
+      throw new ApiError(400, "bookingId must be a single string");
+    }
 
-    // Convert to ObjectId
+    if (!driverId || !Types.ObjectId.isValid(driverId)) {
+      throw new ApiError(400, "Valid driverId is required");
+    }
+
+    if (!bookingId || !Types.ObjectId.isValid(bookingId)) {
+      throw new ApiError(400, "Valid bookingId is required");
+    }
+
+    // Convert to ObjectId safely
     const driverObjectId = new Types.ObjectId(driverId);
     const bookingObjectId = new Types.ObjectId(bookingId);
 
+    // Call the service
     const data = await driverService.startRide(driverObjectId, bookingObjectId);
 
-    res.json({
+    res.status(200).json({
       success: true,
       message: "Ride started successfully",
       data,
     });
-  } catch (err) {
-    next(err);
+  } catch (err: any) {
+    if (err instanceof ApiError) {
+      return res
+        .status(err.statusCode)
+        .json({ success: false, message: err.message });
+    }
+    console.error(err);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 export const deleteVehiclePhoto = async (
