@@ -47,21 +47,25 @@ export const initiatePayment = async (req: Request, res: Response) => {
   }
 
   try {
-    const result = await PaymentService.initiatePayment(req.body);
+    const payment = await PaymentService.initiatePayment(req.body);
+
     return res.status(200).json({
       success: true,
       message: "Payment processed successfully",
-      data: result,
+      data: payment,
     });
   } catch (err: any) {
     if (err.code === "ALREADY_PAID") {
-      return res
-        .status(400)
-        .json({ success: false, message: "Booking already paid" });
+      return res.status(400).json({
+        success: false,
+        message: "Booking already paid",
+      });
     }
+
     console.error(err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };

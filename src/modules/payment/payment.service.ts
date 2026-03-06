@@ -94,15 +94,21 @@ const initiatePayment = async (payload: {
   session.startTransaction();
 
   try {
-    const booking = await Booking.findById(payload.bookingId).session(session);
+    // 1️⃣ Lock the booking for update
+    const booking = await Booking.findOne({ _id: payload.bookingId }).session(
+      session,
+    );
 
     if (!booking) throw new Error("Booking not found");
+
+    // 2️⃣ Check if already paid
     if (booking.paymentStatus === "paid") {
       const err: any = new Error("Booking already paid");
       err.code = "ALREADY_PAID";
       throw err;
     }
 
+    // 3️⃣ Create a payment record
     const transactionId = generateTransactionId();
 
     const payment = await Payment.create(
@@ -118,17 +124,16 @@ const initiatePayment = async (payload: {
       { session },
     );
 
-    // Simulate payment success
+    // 4️⃣ Simulate payment gateway
     const isSuccess = Math.random() > 0.1;
 
     if (isSuccess) {
       payment[0].status = "paid";
-      payment[0].paidAt = new Date();
       await payment[0].save({ session });
 
       booking.payment = payment[0]._id;
-      booking.status = "confirmed";
-      booking.paymentStatus = "paid";
+      booking.paymentStatus = "paid"; // mark as paid
+      booking.status = "confirmed"; // confirm booking
       await booking.save({ session });
     } else {
       payment[0].status = "failed";
@@ -137,6 +142,7 @@ const initiatePayment = async (payload: {
 
     await session.commitTransaction();
     session.endSession();
+
     return payment[0];
   } catch (error) {
     await session.abortTransaction();
