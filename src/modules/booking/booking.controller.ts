@@ -206,85 +206,172 @@ export const dropOffBooking = async (req: Request, res: Response) => {
 
 // PATCH /bookings/:bookingId/verify-completion-otp
 
+// export const verifyCompletionOtp = async (req: Request, res: Response) => {
+//   try {
+//     const { bookingId } = req.params;
+//     let { otp, driverId } = req.body;
+
+//     // Convert driverId from array if frontend sends multiple values
+//     const driverIdStr = Array.isArray(driverId) ? driverId[0] : driverId;
+
+//     // Validate required fields
+//     if (!otp || !driverIdStr) {
+//       throw new ApiError(400, "OTP and driverId are required");
+//     }
+
+//     // Validate ObjectIds
+//     const bookingIdStr = Array.isArray(bookingId) ? bookingId[0] : bookingId;
+//     if (!Types.ObjectId.isValid(bookingIdStr)) {
+//       throw new ApiError(400, "Invalid bookingId");
+//     }
+//     if (!Types.ObjectId.isValid(driverIdStr)) {
+//       throw new ApiError(400, "Invalid driverId");
+//     }
+
+//     // Fetch booking
+//     const booking = await Booking.findById(bookingIdStr);
+//     if (!booking) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Booking not found" });
+//     }
+
+//     // Validate OTP
+//     if (!booking.completionOtp || booking.completionOtp !== otp) {
+//       return res.status(400).json({ success: false, message: "OTP mismatch" });
+//     }
+
+//     // Find the driver quote for this driver
+//     const driverQuote = booking.driverQuote.find(
+//       (q) => q.driverId.toString() === driverIdStr,
+//     );
+//     if (!driverQuote) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Driver quote not found" });
+//     }
+
+//     // Fetch driver and update earnings + status
+//     const driver = await Driver.findById(driverIdStr);
+//     if (!driver) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Driver not found" });
+//     }
+
+//     driver.totalEarnings =
+//       (driver.totalEarnings || 0) + driverQuote.currentAmount;
+//     driver.status = "available";
+//     await driver.save();
+
+//     // Update booking status
+//     booking.status = "completed"; // mark as completed
+//     booking.pickStatus = "dropped"; // ensure pickStatus is dropped
+//     booking.completionOtp = undefined; // invalidate OTP
+//     booking.completionOtpExpiresAt = undefined;
+//     await booking.save();
+
+//     // Respond success
+//     return res.status(200).json({
+//       success: true,
+//       message: "Booking completed successfully and driver earnings updated",
+//       data: {
+//         bookingId: booking._id,
+//         driverId: driver._id,
+//         driverTotalEarnings: driver.totalEarnings,
+//         bookingStatus: booking.status,
+//         pickStatus: booking.pickStatus,
+//       },
+//     });
+//   } catch (error: any) {
+//     console.error("VERIFY COMPLETION OTP ERROR:", error);
+//     return res.status(error.statusCode || 500).json({
+//       success: false,
+//       message: error.message || "Internal server error",
+//     });
+//   }
+// };
+
 export const verifyCompletionOtp = async (req: Request, res: Response) => {
   try {
     const { bookingId } = req.params;
-    let { otp, driverId } = req.body;
+    const { otp } = req.body;
 
-    // Convert driverId from array if frontend sends multiple values
-    const driverIdStr = Array.isArray(driverId) ? driverId[0] : driverId;
-
-    // Validate required fields
-    if (!otp || !driverIdStr) {
-      throw new ApiError(400, "OTP and driverId are required");
+    if (!otp) {
+      throw new ApiError(400, "OTP is required");
     }
 
-    // Validate ObjectIds
     const bookingIdStr = Array.isArray(bookingId) ? bookingId[0] : bookingId;
+
     if (!Types.ObjectId.isValid(bookingIdStr)) {
       throw new ApiError(400, "Invalid bookingId");
     }
-    if (!Types.ObjectId.isValid(driverIdStr)) {
-      throw new ApiError(400, "Invalid driverId");
-    }
 
-    // Fetch booking
     const booking = await Booking.findById(bookingIdStr);
     if (!booking) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Booking not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
     }
 
     // Validate OTP
-    if (!booking.completionOtp || booking.completionOtp !== otp) {
-      return res.status(400).json({ success: false, message: "OTP mismatch" });
+    if (!booking.driverId) {
+      return res.status(400).json({
+        success: false,
+        message: "Driver not assigned to this booking",
+      });
     }
 
-    // Find the driver quote for this driver
+    const driverIdStr = booking.driverId.toString();
+
+    // Find driver quote
     const driverQuote = booking.driverQuote.find(
       (q) => q.driverId.toString() === driverIdStr,
     );
+
     if (!driverQuote) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Driver quote not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Driver quote not found",
+      });
     }
 
-    // Fetch driver and update earnings + status
     const driver = await Driver.findById(driverIdStr);
+
     if (!driver) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Driver not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Driver not found",
+      });
     }
 
     driver.totalEarnings =
       (driver.totalEarnings || 0) + driverQuote.currentAmount;
+
     driver.status = "available";
     await driver.save();
 
-    // Update booking status
-    booking.status = "completed"; // mark as completed
-    booking.pickStatus = "dropped"; // ensure pickStatus is dropped
-    booking.completionOtp = undefined; // invalidate OTP
+    booking.status = "completed";
+    booking.pickStatus = "dropped";
+    booking.completionOtp = undefined;
     booking.completionOtpExpiresAt = undefined;
+
     await booking.save();
 
-    // Respond success
     return res.status(200).json({
       success: true,
-      message: "Booking completed successfully and driver earnings updated",
+      message: "Booking completed successfully",
       data: {
         bookingId: booking._id,
         driverId: driver._id,
         driverTotalEarnings: driver.totalEarnings,
         bookingStatus: booking.status,
-        pickStatus: booking.pickStatus,
       },
     });
   } catch (error: any) {
     console.error("VERIFY COMPLETION OTP ERROR:", error);
+
     return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message || "Internal server error",
