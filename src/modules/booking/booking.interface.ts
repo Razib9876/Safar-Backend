@@ -68,7 +68,7 @@ export interface IBooking {
 
   assignToDriver: IAssignByAdmin[];
   driverQuote: IDriverQuote[];
-  selectedQuoteId?: string;
+  selectedQuoteId: Types.ObjectId;
 
   completionOtp?: string;
   completionOtpExpiresAt?: Date;

@@ -213,7 +213,7 @@ export const selectQuote = async (
   if (quote.status !== "pending")
     throw new ApiError(400, "Quote not available");
   booking.driverId = quote.driverId as Types.ObjectId;
-  booking.selectedQuoteId = quoteId;
+  booking.selectedQuoteId = new Types.ObjectId(quoteId);
   booking.totalAmount = quote.amount;
   booking.status = "payment_pending";
   quote.status = "accepted";
@@ -231,7 +231,7 @@ export const getConfirmedPaidBookingsByDriver = async (
 ): Promise<IBookingDoc[]> => {
   return Booking.find({
     driverId,
-    status: { $in: ["confirmed", "on_trip", "complete"] },
+    status: { $in: ["confirmed", "on_trip", "completed"] },
     paymentStatus: "paid",
   })
     .populate("userId", "name email phone") // populate user info
