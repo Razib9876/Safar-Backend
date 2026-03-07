@@ -251,15 +251,15 @@ import mongoose from "mongoose";
 import crypto from "crypto";
 import { Payment } from "./payment.model";
 import { Booking } from "../booking/booking.model";
-import { IAssignByAdmin, IDriverQuote } from "../booking/booking.interface";
+import { IPayment } from "./payment.interface";
 
-const generateTransactionId = () => {
+const generateTransactionId = (): string => {
   return "SAFAR-TXN-" + crypto.randomBytes(6).toString("hex").toUpperCase();
 };
 
 const initiatePayment = async (payload: {
   bookingId: string;
-  quoteId: string;
+  quoteId: string; // selected quote id
   amount: number;
   paymentMethod: string;
 }) => {
@@ -267,11 +267,8 @@ const initiatePayment = async (payload: {
   session.startTransaction();
 
   try {
-    // 1️⃣ Lock the booking for update
-    const booking = await Booking.findOne({ _id: payload.bookingId }).session(
-      session,
-    );
-
+    // 1️⃣ Lock the booking
+    const booking = await Booking.findById(payload.bookingId).session(session);
     if (!booking) throw new Error("Booking not found");
 
     // 2️⃣ Check if already paid
@@ -281,7 +278,7 @@ const initiatePayment = async (payload: {
       throw err;
     }
 
-    // 3️⃣ Create a payment record
+    // 3️⃣ Create payment record
     const transactionId = generateTransactionId();
     const payment = await Payment.create(
       [
@@ -303,37 +300,36 @@ const initiatePayment = async (payload: {
       payment[0].status = "paid";
       await payment[0].save({ session });
 
-      // 5️⃣ Find the selected quote safely
-      const selectedQuote: IDriverQuote | undefined = booking.driverQuote.find(
-        (q) => q._id?.toString() === payload.quoteId,
+      // Find the selected quote
+      const selectedQuote = booking.driverQuote.find(
+        (q: any) => q._id?.toString() === payload.quoteId,
       );
+      if (!selectedQuote || !selectedQuote.driverId)
+        throw new Error("Quote not found or invalid driverId");
 
-      if (!selectedQuote || !selectedQuote._id)
-        throw new Error("Quote not found");
-
-      // 6️⃣ Assign driver and selectedQuoteId
+      // Assign driver and selectedQuote
       booking.driverId = selectedQuote.driverId;
-      booking.selectedQuoteId = selectedQuote._id;
+      booking.selectedQuoteId = selectedQuote._id!; // ✅ non-null assertion
 
-      // 7️⃣ Update driverQuote statuses
-      booking.driverQuote.forEach((q) => {
-        if (q._id?.toString() === payload.quoteId) q.status = "accepted";
-        else q.status = "rejected_by_user";
+      // Update driverQuote statuses
+      booking.driverQuote.forEach((quote: any) => {
+        if (quote._id?.toString() === payload.quoteId)
+          quote.status = "accepted";
+        else quote.status = "rejected_by_user";
       });
       booking.markModified("driverQuote");
 
-      // 8️⃣ Update assignToDriver array
-      const assignEntry: IAssignByAdmin = {
-        _id: new mongoose.Types.ObjectId(), // generate new _id for the assign entry
+      // Add to assignToDriver array
+      booking.assignToDriver.push({
+        _id: new mongoose.Types.ObjectId(),
         driverId: selectedQuote.driverId,
         amount: selectedQuote.currentAmount,
         status: "accepted",
         createdAt: new Date(),
-      };
-      booking.assignToDriver.push(assignEntry);
+      });
       booking.markModified("assignToDriver");
 
-      // 9️⃣ Update booking status and payment references
+      // Update booking payment and status
       booking.payment = payment[0]._id;
       booking.paymentStatus = "paid";
       booking.status = "confirmed";
@@ -347,10 +343,11 @@ const initiatePayment = async (payload: {
     await session.commitTransaction();
     session.endSession();
 
-    return payment[0];
+    return payment[0] as IPayment;
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
+    console.error("Payment service error:", error);
     throw error;
   }
 };
