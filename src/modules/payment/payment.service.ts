@@ -152,10 +152,106 @@
 // };
 
 // export const PaymentService = { initiatePayment };
+// import mongoose from "mongoose";
+// import crypto from "crypto";
+// import { Payment } from "./payment.model";
+// import { Booking } from "../booking/booking.model";
+
+// const generateTransactionId = () => {
+//   return "SAFAR-TXN-" + crypto.randomBytes(6).toString("hex").toUpperCase();
+// };
+
+// const initiatePayment = async (payload: {
+//   bookingId: string;
+//   quoteId: string; // ✅ FIXED (added)
+//   amount: number;
+//   paymentMethod: string;
+// }) => {
+//   const session = await mongoose.startSession();
+//   session.startTransaction();
+
+//   try {
+//     // 1️⃣ Lock the booking for update
+//     const booking = await Booking.findOne({ _id: payload.bookingId }).session(
+//       session,
+//     );
+
+//     if (!booking) throw new Error("Booking not found");
+
+//     // 2️⃣ Check if already paid
+//     if (booking.paymentStatus === "paid") {
+//       const err: any = new Error("Booking already paid");
+//       err.code = "ALREADY_PAID";
+//       throw err;
+//     }
+
+//     // 3️⃣ Create a payment record
+//     const transactionId = generateTransactionId();
+
+//     const payment = await Payment.create(
+//       [
+//         {
+//           booking: booking._id,
+//           transactionId,
+//           amount: payload.amount,
+//           paymentMethod: payload.paymentMethod,
+//           status: "pending",
+//         },
+//       ],
+//       { session },
+//     );
+
+//     // 4️⃣ Simulate payment gateway
+//     const isSuccess = Math.random() > 0.1;
+
+//     if (isSuccess) {
+//       payment[0].status = "paid";
+//       await payment[0].save({ session });
+
+//       // Find selected quote
+//       const selectedQuote = booking.driverQuote.find(
+//         (q: any) => q._id.toString() === payload.quoteId,
+//       );
+
+//       if (!selectedQuote) throw new Error("Quote not found");
+
+//       // Assign driver & selectedQuote as ObjectId
+//       booking.driverId = new mongoose.Types.ObjectId(selectedQuote.driverId);
+//       booking.selectedQuoteId = new mongoose.Types.ObjectId(selectedQuote._id);
+
+//       // Update quote statuses
+//       booking.driverQuote.forEach((quote: any) => {
+//         if (quote._id.toString() === payload.quoteId) quote.status = "accepted";
+//         else quote.status = "rejected";
+//       });
+
+//       booking.payment = payment[0]._id;
+//       booking.paymentStatus = "paid";
+//       booking.status = "confirmed";
+
+//       await booking.save({ session });
+//     } else {
+//       payment[0].status = "failed";
+//       await payment[0].save({ session });
+//     }
+
+//     await session.commitTransaction();
+//     session.endSession();
+
+//     return payment[0];
+//   } catch (error) {
+//     await session.abortTransaction();
+//     session.endSession();
+//     throw error;
+//   }
+// };
+
+// export const PaymentService = { initiatePayment };
 import mongoose from "mongoose";
 import crypto from "crypto";
 import { Payment } from "./payment.model";
 import { Booking } from "../booking/booking.model";
+import { IAssignByAdmin, IDriverQuote } from "../booking/booking.interface";
 
 const generateTransactionId = () => {
   return "SAFAR-TXN-" + crypto.randomBytes(6).toString("hex").toUpperCase();
@@ -163,7 +259,7 @@ const generateTransactionId = () => {
 
 const initiatePayment = async (payload: {
   bookingId: string;
-  quoteId: string; // ✅ FIXED (added)
+  quoteId: string;
   amount: number;
   paymentMethod: string;
 }) => {
@@ -187,7 +283,6 @@ const initiatePayment = async (payload: {
 
     // 3️⃣ Create a payment record
     const transactionId = generateTransactionId();
-
     const payment = await Payment.create(
       [
         {
@@ -201,30 +296,44 @@ const initiatePayment = async (payload: {
       { session },
     );
 
-    // 4️⃣ Simulate payment gateway
+    // 4️⃣ Simulate payment gateway success/failure
     const isSuccess = Math.random() > 0.1;
 
     if (isSuccess) {
       payment[0].status = "paid";
       await payment[0].save({ session });
 
-      // Find selected quote
-      const selectedQuote = booking.driverQuote.find(
-        (q: any) => q._id.toString() === payload.quoteId,
+      // 5️⃣ Find the selected quote safely
+      const selectedQuote: IDriverQuote | undefined = booking.driverQuote.find(
+        (q) => q._id?.toString() === payload.quoteId,
       );
 
-      if (!selectedQuote) throw new Error("Quote not found");
+      if (!selectedQuote || !selectedQuote._id)
+        throw new Error("Quote not found");
 
-      // Assign driver & selectedQuote as ObjectId
-      booking.driverId = new mongoose.Types.ObjectId(selectedQuote.driverId);
-      booking.selectedQuoteId = new mongoose.Types.ObjectId(selectedQuote._id);
+      // 6️⃣ Assign driver and selectedQuoteId
+      booking.driverId = selectedQuote.driverId;
+      booking.selectedQuoteId = selectedQuote._id;
 
-      // Update quote statuses
-      booking.driverQuote.forEach((quote: any) => {
-        if (quote._id.toString() === payload.quoteId) quote.status = "accepted";
-        else quote.status = "rejected";
+      // 7️⃣ Update driverQuote statuses
+      booking.driverQuote.forEach((q) => {
+        if (q._id?.toString() === payload.quoteId) q.status = "accepted";
+        else q.status = "rejected_by_user";
       });
+      booking.markModified("driverQuote");
 
+      // 8️⃣ Update assignToDriver array
+      const assignEntry: IAssignByAdmin = {
+        _id: new mongoose.Types.ObjectId(), // generate new _id for the assign entry
+        driverId: selectedQuote.driverId,
+        amount: selectedQuote.currentAmount,
+        status: "accepted",
+        createdAt: new Date(),
+      };
+      booking.assignToDriver.push(assignEntry);
+      booking.markModified("assignToDriver");
+
+      // 9️⃣ Update booking status and payment references
       booking.payment = payment[0]._id;
       booking.paymentStatus = "paid";
       booking.status = "confirmed";
