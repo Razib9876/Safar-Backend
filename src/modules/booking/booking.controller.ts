@@ -533,6 +533,7 @@ export const getBookingsByUserEmail = async (
       .populate("userId", "name email phone")
       .populate("driverId", "name phoneNumber vehicleDetails")
       .populate("assignToDriver.driverId", "name phoneNumber vehicleDetails")
+      .populate("driverQuote.driverId", "name phoneNumber vehicleDetails")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
