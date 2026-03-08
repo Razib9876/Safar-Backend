@@ -68,32 +68,6 @@ export const getById = async (
     next(e);
   }
 };
-// export const list = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ): Promise<void> => {
-//   try {
-//     const userId = req.query.userId as string | undefined;
-//     const driverId = req.query.driverId as string | undefined;
-//     const status = req.query.status as string | undefined;
-
-//     const filter: any = {};
-
-//     if (userId) filter.userId = new Types.ObjectId(userId);
-//     if (driverId) filter.driverId = new Types.ObjectId(driverId);
-//     if (status) filter.status = status;
-
-//     const bookings = await Booking.find(filter)
-//       .populate("userId", "name email phone role photoURL")
-//       .populate("driverId")
-//       .sort({ createdAt: -1 });
-
-//     res.status(200).json({ success: true, data: bookings });
-//   } catch (e) {
-//     next(e);
-//   }
-// };
 
 // Cancel booking
 export const cancelBooking = async (req: Request, res: Response) => {
@@ -203,94 +177,6 @@ export const dropOffBooking = async (req: Request, res: Response) => {
     });
   }
 };
-
-// PATCH /bookings/:bookingId/verify-completion-otp
-
-// export const verifyCompletionOtp = async (req: Request, res: Response) => {
-//   try {
-//     const { bookingId } = req.params;
-//     let { otp, driverId } = req.body;
-
-//     // Convert driverId from array if frontend sends multiple values
-//     const driverIdStr = Array.isArray(driverId) ? driverId[0] : driverId;
-
-//     // Validate required fields
-//     if (!otp || !driverIdStr) {
-//       throw new ApiError(400, "OTP and driverId are required");
-//     }
-
-//     // Validate ObjectIds
-//     const bookingIdStr = Array.isArray(bookingId) ? bookingId[0] : bookingId;
-//     if (!Types.ObjectId.isValid(bookingIdStr)) {
-//       throw new ApiError(400, "Invalid bookingId");
-//     }
-//     if (!Types.ObjectId.isValid(driverIdStr)) {
-//       throw new ApiError(400, "Invalid driverId");
-//     }
-
-//     // Fetch booking
-//     const booking = await Booking.findById(bookingIdStr);
-//     if (!booking) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "Booking not found" });
-//     }
-
-//     // Validate OTP
-//     if (!booking.completionOtp || booking.completionOtp !== otp) {
-//       return res.status(400).json({ success: false, message: "OTP mismatch" });
-//     }
-
-//     // Find the driver quote for this driver
-//     const driverQuote = booking.driverQuote.find(
-//       (q) => q.driverId.toString() === driverIdStr,
-//     );
-//     if (!driverQuote) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "Driver quote not found" });
-//     }
-
-//     // Fetch driver and update earnings + status
-//     const driver = await Driver.findById(driverIdStr);
-//     if (!driver) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "Driver not found" });
-//     }
-
-//     driver.totalEarnings =
-//       (driver.totalEarnings || 0) + driverQuote.currentAmount;
-//     driver.status = "available";
-//     await driver.save();
-
-//     // Update booking status
-//     booking.status = "completed"; // mark as completed
-//     booking.pickStatus = "dropped"; // ensure pickStatus is dropped
-//     booking.completionOtp = undefined; // invalidate OTP
-//     booking.completionOtpExpiresAt = undefined;
-//     await booking.save();
-
-//     // Respond success
-//     return res.status(200).json({
-//       success: true,
-//       message: "Booking completed successfully and driver earnings updated",
-//       data: {
-//         bookingId: booking._id,
-//         driverId: driver._id,
-//         driverTotalEarnings: driver.totalEarnings,
-//         bookingStatus: booking.status,
-//         pickStatus: booking.pickStatus,
-//       },
-//     });
-//   } catch (error: any) {
-//     console.error("VERIFY COMPLETION OTP ERROR:", error);
-//     return res.status(error.statusCode || 500).json({
-//       success: false,
-//       message: error.message || "Internal server error",
-//     });
-//   }
-// };
 
 export const verifyCompletionOtp = async (req: Request, res: Response) => {
   try {
