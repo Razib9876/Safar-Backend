@@ -386,11 +386,12 @@ const initiatePayment = async (payload: {
     const payment = await Payment.create(
       [
         {
-          booking: booking._id,
-          transactionId,
+          booking: booking._id, // link to booking
+          transactionId, // generated
           amount: payload.amount,
           paymentMethod: payload.paymentMethod,
-          status: "pending",
+          status: "paid", // set paid after success
+          paidAt: new Date(), // set paid timestamp
         },
       ],
       { session },
