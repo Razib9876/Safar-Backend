@@ -47,6 +47,25 @@ export const getByEmail = async (
   }
 };
 
+export const list = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const users = await userService.listUsers({}); // fetch all
+
+    // Only expose safe fields
+    const publicUsers = users.map((u) => ({
+      _id: u._id,
+      name: u.name,
+      role: u.role,
+      status: u.status,
+      photoURL: u.photoURL,
+    }));
+
+    res.status(200).json({ success: true, data: publicUsers });
+  } catch (e) {
+    next(e);
+  }
+};
+
 export const getMe = async (
   req: Request,
   res: Response,
@@ -103,27 +122,27 @@ export const getById = async (
   }
 };
 
-export const list = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> => {
-  try {
-    // Ensure query params are strings
-    const roleQuery = req.query.role;
-    const statusQuery = req.query.status;
+// export const list = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ): Promise<void> => {
+//   try {
+//     // Ensure query params are strings
+//     const roleQuery = req.query.role;
+//     const statusQuery = req.query.status;
 
-    // Only allow role if it matches UserRole enum/type
-    const role =
-      typeof roleQuery === "string" ? (roleQuery as UserRole) : undefined;
-    const status = typeof statusQuery === "string" ? statusQuery : undefined;
+//     // Only allow role if it matches UserRole enum/type
+//     const role =
+//       typeof roleQuery === "string" ? (roleQuery as UserRole) : undefined;
+//     const status = typeof statusQuery === "string" ? statusQuery : undefined;
 
-    const users = await userService.listUsers({ role, status });
-    res.status(200).json({ success: true, data: users });
-  } catch (e) {
-    next(e);
-  }
-};
+//     const users = await userService.listUsers({ role, status });
+//     res.status(200).json({ success: true, data: users });
+//   } catch (e) {
+//     next(e);
+//   }
+// };
 export const updateById = async (
   req: Request,
   res: Response,

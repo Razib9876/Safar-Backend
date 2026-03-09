@@ -21,6 +21,8 @@ router.get(
 
 // Protected routes
 router.get("/me", firebaseAuth, userController.getMe);
+// user.router.ts
+router.get("/public", userController.list); // no firebaseAuth, no role check
 router.patch(
   "/me",
   firebaseAuth,
