@@ -32,7 +32,7 @@ router.patch(
 );
 
 // Admin-only routes
-router.get("/", firebaseAuth, requireRole("admin"), userController.list);
+router.get("/", userController.list);
 router.get("/:id", firebaseAuth, requireRole("admin"), userController.getById);
 router.patch(
   "/:id",
