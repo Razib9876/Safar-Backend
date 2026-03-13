@@ -99,6 +99,62 @@ export const updateMe = async (
   }
 };
 
+export const promoteToAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const paramId = req.params.id;
+
+    if (!paramId || Array.isArray(paramId)) {
+      throw new ApiError(400, "Invalid user ID");
+    }
+
+    const id = new Types.ObjectId(paramId);
+
+    const user = await userService.updateUser(id, { role: "admin" });
+
+    if (!user) throw new ApiError(404, "User not found");
+
+    res.status(200).json({
+      success: true,
+      message: "User promoted to admin",
+      data: user,
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const demoteToUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const paramId = req.params.id;
+
+    if (!paramId || Array.isArray(paramId)) {
+      throw new ApiError(400, "Invalid user ID");
+    }
+
+    const id = new Types.ObjectId(paramId);
+
+    const user = await userService.updateUser(id, { role: "rider" });
+
+    if (!user) throw new ApiError(404, "User not found");
+
+    res.status(200).json({
+      success: true,
+      message: "Admin demoted to user",
+      data: user,
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+
 export const getById = async (
   req: Request,
   res: Response,
