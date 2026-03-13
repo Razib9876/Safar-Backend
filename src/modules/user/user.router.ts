@@ -38,15 +38,15 @@ router.get("/:id", firebaseAuth, requireRole("admin"), userController.getById);
 // Admin role management
 router.patch(
   "/:id/promote-admin",
-  // firebaseAuth,
-  // requireRole("admin"),
+  firebaseAuth,
+  requireRole("admin"),
   userController.promoteToAdmin,
 );
 
 router.patch(
   "/:id/demote-user",
-  // firebaseAuth,
-  // requireRole("admin"),
+  firebaseAuth,
+  requireRole("admin"),
   userController.demoteToUser,
 );
 router.patch(
