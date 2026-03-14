@@ -132,6 +132,13 @@ router.patch(
   validate,
   bookingController.verifyCompletionOtp,
 );
+router.get(
+  "/driver/:driverId/completed-bookings",
+  driverIdParamRules(),
+  validate,
+  bookingController.getDriverCompletedBookings,
+);
+
 router.patch("/:id/cancel", idParamRules(), validate, bookingController.cancel);
 
 export default router;

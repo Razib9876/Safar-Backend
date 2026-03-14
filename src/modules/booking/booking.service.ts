@@ -257,6 +257,12 @@ export const completeBooking = async (
     .populate("driverId");
   return booking;
 };
+export const getDriverCompletedBookings = async (driverId: Types.ObjectId) => {
+  return Booking.find({
+    driverId,
+    status: "completed",
+  });
+};
 
 export const verifyCompletionOtp = async (
   bookingId: Types.ObjectId,

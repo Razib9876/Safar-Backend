@@ -1111,6 +1111,33 @@ export const verifyOtp = async (
     next(e);
   }
 };
+export const getDriverCompletedBookings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const driverId = Array.isArray(req.params.driverId)
+      ? req.params.driverId[0]
+      : req.params.driverId; // get driver id from params
+
+    if (!Types.ObjectId.isValid(driverId)) {
+      throw new ApiError(400, "Invalid driver ID");
+    }
+
+    const bookings = await bookingService.getDriverCompletedBookings(
+      new Types.ObjectId(driverId),
+    );
+
+    res.status(200).json({
+      success: true,
+      data: bookings,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const cancel = async (
   req: Request,
   res: Response,
