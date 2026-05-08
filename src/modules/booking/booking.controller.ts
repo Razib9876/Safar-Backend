@@ -9,7 +9,7 @@ import { User } from "../user/user.model";
 import { IAssignByAdmin } from "./booking.interface";
 import { Driver } from "../driver/driver.model";
 
-// Create booking
+// Create bookingssssssss
 export const create = async (
   req: Request,
   res: Response,
