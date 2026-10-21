@@ -10,3 +10,4 @@ export const connectDb = async (): Promise<void> => {
     process.exit(1);
   }
 };
+// this line is for final code check
