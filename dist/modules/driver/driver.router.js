@@ -36,13 +36,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const driverController = __importStar(require("./driver.controller"));
 const driver_validation_1 = require("./driver.validation");
+const driver_validation_2 = require("./driver.validation");
+const booking_validation_1 = require("../booking/booking.validation");
 const router = (0, express_1.Router)();
-router.post('/', (0, driver_validation_1.createDriverRules)(), driver_validation_1.validate, driverController.create);
-router.get('/', driverController.list);
-router.get('/by-user/:userId', (0, driver_validation_1.userIdParamRules)(), driver_validation_1.validate, driverController.getByUserId);
-router.get('/:id', (0, driver_validation_1.idParamRules)(), driver_validation_1.validate, driverController.getById);
-router.patch('/:id', (0, driver_validation_1.updateDriverRules)(), driver_validation_1.validate, driverController.update);
-router.patch('/:id/approve', (0, driver_validation_1.idParamRules)(), driver_validation_1.validate, driverController.approve);
-router.patch('/:id/reject', (0, driver_validation_1.idParamRules)(), driver_validation_1.validate, driverController.reject);
+router.patch("/:driverId/ride-start/:bookingId", (0, booking_validation_1.driverIdParamRules)(), (0, driver_validation_2.bookingIdParamRules)(), driver_validation_1.validate, driverController.rideStart);
+// Create driver
+router.post("/create", (0, driver_validation_1.createDriverRules)(), driver_validation_1.validate, driverController.create);
+router.get("/pending", driverController.getPendingDrivers);
+router.get("/available", driverController.getAvailableDrivers);
+router.get("/suspended", driverController.getSuspendedDrivers);
+router.get("/rejected", driverController.getRejectedDrivers);
+router.get("/on-ride", driverController.getOnRideDrivers);
+router.get("/by-email", driverController.getDriverByUserEmail);
+router.get("/user/:userId", (0, driver_validation_1.userIdParamRules)(), driver_validation_1.validate, driverController.getByUserId);
+router.get("/", driverController.list);
+router.patch("/:id", (0, driver_validation_1.idParamRules)(), (0, driver_validation_1.updateDriverRules)(), driver_validation_1.validate, driverController.update);
+router.patch("/:id/approve", driverController.approveDriver);
+router.patch("/:id/reject", (0, driver_validation_1.idParamRules)(), driver_validation_1.validate, driverController.reject);
+router.patch("/:id/suspend", (0, driver_validation_1.idParamRules)(), driver_validation_1.validate, driverController.suspendDriver);
+router.post("/:id/vehicle/photo/add", (0, driver_validation_1.idParamRules)(), driver_validation_1.validate, driverController.addVehiclePhoto);
+router.patch("/:id/vehicle/photo/main", (0, driver_validation_1.idParamRules)(), driver_validation_1.validate, driverController.updateVehicleMainPhoto);
+router.delete("/:id/vehicle/photo", (0, driver_validation_1.idParamRules)(), driver_validation_1.validate, driverController.deleteVehiclePhoto);
+// ...
+router.get("/:id", (0, driver_validation_1.idParamRules)(), driver_validation_1.validate, driverController.getById);
 exports.default = router;
 //# sourceMappingURL=driver.router.js.map

@@ -35,75 +35,106 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Booking = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const driverQuoteSchema = new mongoose_1.Schema({
-    driverId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Driver', required: true },
-    amount: { type: Number, required: true },
+/* ================= DRIVER QUOTE SCHEMA ================= */
+const assignToDriverSchema = new mongoose_1.Schema({
+    driverId: { type: mongoose_1.Schema.Types.ObjectId, ref: "Driver" },
     status: {
         type: String,
-        enum: ['pending', 'accepted', 'rejected_by_user'],
-        default: 'pending',
+        enum: ["pending", "accepted", "rejected_by_user"],
+        default: "pending",
     },
     rejectedAt: { type: Date },
     createdAt: { type: Date, default: Date.now },
 }, { _id: true });
+const driverQuoteSchema = new mongoose_1.Schema({
+    driverId: { type: mongoose_1.Schema.Types.ObjectId, ref: "Driver" },
+    currentAmount: { type: Number, required: true },
+    previousAmount: { type: Number },
+    status: {
+        type: String,
+        enum: ["pending", "confirmed", "rejected"],
+        default: "pending",
+    },
+    rejectedAt: { type: Date },
+    createdAt: { type: Date, default: Date.now },
+}, { _id: true });
+/* ================= BOOKING SCHEMA ================= */
 const bookingSchema = new mongoose_1.Schema({
-    userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
-    driverId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Driver' },
+    userId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
+    driverId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "Driver",
+        default: null,
+    },
     tripType: {
         type: String,
+        enum: ["one_way", "round_trip"],
+        default: "one_way",
         required: true,
-        enum: ['one_way', 'round_trip'],
     },
     vehicleType: {
         type: String,
         required: true,
-        enum: ['car', 'cng', 'hiace'],
+        enum: ["car", "cng", "hiace"],
     },
-    phoneNumber: { type: String, required: true, trim: true },
-    fromLocation: { type: mongoose_1.Schema.Types.Mixed, required: true },
-    toLocation: { type: mongoose_1.Schema.Types.Mixed, required: true },
-    dateFrom: { type: Date, required: true },
-    dateTo: { type: Date },
-    timeFrom: { type: String, required: true },
-    timeTo: { type: String },
-    status: {
+    phoneNumber: {
         type: String,
         required: true,
+        trim: true,
+    },
+    fromLocation: { type: String, required: true },
+    toLocation: { type: String, required: true },
+    dateFrom: { type: Date, required: true },
+    dateTo: { type: Date, default: null },
+    timeFrom: { type: String, required: true },
+    timeTo: { type: String, default: null },
+    status: {
+        type: String,
         enum: [
-            'draft',
-            'pending_quotes',
-            'quoted',
-            'payment_pending',
-            'confirmed',
-            'on_trip',
-            'completed',
-            'cancelled',
-            'rejected',
+            "draft",
+            "pending",
+            "public",
+            "assigned",
+            "quoted",
+            "payment_pending",
+            "confirmed",
+            "on_trip",
+            "completed",
+            "cancelled",
+            "rejected",
         ],
-        default: 'pending_quotes',
+        default: "pending",
     },
     paymentStatus: {
         type: String,
-        required: true,
-        enum: ['pending', 'paid', 'failed', 'refunded'],
-        default: 'pending',
+        enum: ["pending", "paid", "failed", "refunded"],
+        default: "pending",
     },
-    totalAmount: { type: Number },
-    paymentMethod: { type: String },
-    isPublic: { type: Boolean, required: true, default: true },
-    driverQuotes: [driverQuoteSchema],
-    selectedQuoteId: { type: String },
-    completionOtp: { type: String },
-    completionOtpExpiresAt: { type: Date },
-    pickStatus: { type: String, enum: ['pending', 'picked', 'dropped'] },
-    pickupTime: { type: Date },
-    dropoffTime: { type: Date },
-    cancellationReason: { type: String },
-    notes: { type: String },
+    payment: { type: mongoose_1.Schema.Types.ObjectId, ref: "Payment" },
+    totalAmount: { type: Number, default: 0 },
+    isPublic: { type: Boolean, default: true },
+    assignToDriver: { type: [assignToDriverSchema], default: [] },
+    driverQuote: { type: [driverQuoteSchema], default: [] },
+    selectedQuoteId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        default: null,
+    },
+    completionOtp: { type: String, default: null },
+    completionOtpExpiresAt: { type: Date, default: null },
+    pickStatus: {
+        type: String,
+        enum: ["pending", "picked", "dropped"],
+        default: "pending",
+    },
+    pickupTime: { type: Date, default: null },
+    dropoffTime: { type: Date, default: null },
+    cancellationReason: { type: String, default: null },
 }, {
     timestamps: true,
-    toJSON: { virtuals: false },
-    toObject: { virtuals: false },
 });
-exports.Booking = mongoose_1.default.model('Booking', bookingSchema);
+exports.Booking = mongoose_1.default.model("Booking", bookingSchema);
 //# sourceMappingURL=booking.model.js.map

@@ -1,9 +1,20 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 export declare const create: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const getById: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const getByUserId: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const list: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const getPendingDrivers: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const getOnRideDrivers: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const getAvailableDrivers: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const getSuspendedDrivers: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const suspendDriver: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const getRejectedDrivers: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const update: (req: Request, res: Response, next: NextFunction) => Promise<void>;
-export declare const approve: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const approveDriver: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const reject: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const getDriverByUserEmail: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const addVehiclePhoto: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const updateVehicleMainPhoto: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const rideStart: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>>>;
+export declare const deleteVehiclePhoto: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 //# sourceMappingURL=driver.controller.d.ts.map

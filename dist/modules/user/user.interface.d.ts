@@ -1,6 +1,6 @@
-import { Document, Types } from 'mongoose';
-export type UserRole = 'rider' | 'driver' | 'admin';
-export type UserStatus = 'active' | 'suspended' | 'deleted';
+import { Document, Types } from "mongoose";
+export type UserRole = "rider" | "driver" | "admin";
+export type UserStatus = "active" | "suspended" | "deleted";
 export interface IUser {
     name: string;
     email: string;
@@ -23,8 +23,10 @@ export interface IUserCreate {
 }
 export interface IUserUpdate {
     name?: string;
+    email?: string;
     phone?: string;
+    role?: UserRole;
+    status?: string;
     photoURL?: string;
-    status?: UserStatus;
 }
 //# sourceMappingURL=user.interface.d.ts.map

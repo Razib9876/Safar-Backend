@@ -12,9 +12,10 @@ const connectDb = async () => {
         console.log(`MongoDB connected: ${conn.connection.host}`);
     }
     catch (error) {
-        console.error('MongoDB connection error:', error);
+        console.error("MongoDB connection error:", error);
         process.exit(1);
     }
 };
 exports.connectDb = connectDb;
+// this line is for final code check
 //# sourceMappingURL=db.js.map

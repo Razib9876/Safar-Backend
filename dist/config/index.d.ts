@@ -1,6 +1,6 @@
 export declare const config: {
-    port: string | number;
+    port: string | undefined;
     nodeEnv: string;
-    mongodbUri: string;
+    mongodbUri: string | undefined;
 };
 //# sourceMappingURL=index.d.ts.map

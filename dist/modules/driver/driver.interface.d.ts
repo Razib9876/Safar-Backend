@@ -1,38 +1,51 @@
-import { Document, Types } from 'mongoose';
-export type DriverStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
+import { Types } from "mongoose";
 export interface IVehicleDetails {
-    type: string;
+    type: "car" | "cng" | "hiace";
     model?: string;
-    registrationNumber?: string;
-    capacity?: number;
+    registrationNumber: string;
+    capacity: number;
+    mainPhoto: string;
+    photos?: string[];
 }
-export interface IDriver {
-    userId: Types.ObjectId;
-    name: string;
-    phoneNumber: string;
-    photo?: string;
-    status: DriverStatus;
-    approvedByAdmin: boolean;
-    vehicleDetails: IVehicleDetails;
-    createdAt: Date;
-    updatedAt: Date;
-}
-export interface IDriverDoc extends IDriver, Document {
-    _id: Types.ObjectId;
+export interface IDocument {
+    number: string;
+    photos: string[];
+    verified?: boolean;
 }
 export interface IDriverCreate {
-    userId: Types.ObjectId;
+    userId: Types.ObjectId | string;
     name: string;
     phoneNumber: string;
     photo?: string;
-    vehicleDetails: IVehicleDetails;
+    status?: "pending" | "on-ride" | "available" | "approved" | "rejected" | "suspended";
+    approvedByAdmin?: boolean;
+    vehicleDetails: IVehicleDetails[];
+    nid: IDocument;
+    drivingLicense: IDocument;
+    totalEarnings?: number;
+    extraDrivingLicense?: IDocument;
+    updatedBy?: Types.ObjectId | string;
 }
 export interface IDriverUpdate {
     name?: string;
     phoneNumber?: string;
     photo?: string;
-    status?: DriverStatus;
+    status?: "pending" | "available" | "approved" | "on-ride" | "rejected" | "suspended";
     approvedByAdmin?: boolean;
-    vehicleDetails?: Partial<IVehicleDetails>;
+    vehicleDetails?: IVehicleDetails[];
+    nid?: IDocument;
+    drivingLicense?: IDocument;
+    totalEarnings: number;
+    extraDrivingLicense?: IDocument;
+    updatedBy?: Types.ObjectId | string;
+}
+export interface IDriverDoc extends IDriverCreate {
+    _id: Types.ObjectId;
+    createdAt: Date;
+    updatedAt: Date;
+    vehicleDetails: IVehicleDetails[];
+    nid: IDocument;
+    drivingLicense: IDocument;
+    extraDrivingLicense?: IDocument;
 }
 //# sourceMappingURL=driver.interface.d.ts.map

@@ -1,17 +1,26 @@
-import { Document, Types } from 'mongoose';
-export type TripType = 'one_way' | 'round_trip';
-export type VehicleType = 'car' | 'cng' | 'hiace';
-export type BookingStatus = 'draft' | 'pending_quotes' | 'quoted' | 'payment_pending' | 'confirmed' | 'on_trip' | 'completed' | 'cancelled' | 'rejected';
-export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
-export type PickStatus = 'pending' | 'picked' | 'dropped';
-export type QuoteStatus = 'pending' | 'accepted' | 'rejected_by_user';
+import { Document, Types } from "mongoose";
+export type TripType = "one_way" | "round_trip";
+export type VehicleType = "car" | "cng" | "hiace";
+export type BookingStatus = "draft" | "pending" | "assigned" | "quoted" | "payment_pending" | "confirmed" | "on_trip" | "completed" | "cancelled" | "public" | "assigned" | "rejected";
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
+export type PickStatus = "pending" | "picked" | "dropped";
+export type QuoteStatus = "pending" | "accepted" | "rejected_by_user";
 export interface IDriverQuote {
     _id?: Types.ObjectId;
     driverId: Types.ObjectId;
-    amount: number;
+    currentAmount: number;
+    previousAmount?: number | string;
     status: QuoteStatus;
     rejectedAt?: Date;
     createdAt: Date;
+}
+export interface IAssignByAdmin {
+    _id: Types.ObjectId;
+    driverId: Types.ObjectId;
+    amount: number;
+    status: "pending" | "accepted" | "rejected_by_user";
+    createdAt: Date;
+    rejectedAt?: Date;
 }
 export interface IBooking {
     userId: Types.ObjectId;
@@ -19,26 +28,26 @@ export interface IBooking {
     tripType: TripType;
     vehicleType: VehicleType;
     phoneNumber: string;
-    fromLocation: string | Record<string, unknown>;
-    toLocation: string | Record<string, unknown>;
+    fromLocation: string;
+    toLocation: string;
     dateFrom: Date;
     dateTo?: Date;
     timeFrom: string;
     timeTo?: string;
     status: BookingStatus;
     paymentStatus: PaymentStatus;
+    payment?: Types.ObjectId;
     totalAmount?: number;
-    paymentMethod?: string;
     isPublic: boolean;
-    driverQuotes: IDriverQuote[];
-    selectedQuoteId?: string;
+    assignToDriver: IAssignByAdmin[];
+    driverQuote: IDriverQuote[];
+    selectedQuoteId: Types.ObjectId;
     completionOtp?: string;
     completionOtpExpiresAt?: Date;
     pickStatus?: PickStatus;
     pickupTime?: Date;
     dropoffTime?: Date;
     cancellationReason?: string;
-    notes?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -47,11 +56,11 @@ export interface IBookingDoc extends IBooking, Document {
 }
 export interface IBookingCreate {
     userId: Types.ObjectId;
-    tripType: TripType;
+    tripType: TripType | "return";
     vehicleType: VehicleType;
     phoneNumber: string;
-    fromLocation: string | Record<string, unknown>;
-    toLocation: string | Record<string, unknown>;
+    fromLocation: string;
+    toLocation: string;
     dateFrom: Date;
     dateTo?: Date;
     timeFrom: string;
@@ -70,7 +79,6 @@ export interface IBookingUpdate {
     completionOtp?: string;
     completionOtpExpiresAt?: Date;
     cancellationReason?: string;
-    notes?: string;
     isPublic?: boolean;
 }
 //# sourceMappingURL=booking.interface.d.ts.map

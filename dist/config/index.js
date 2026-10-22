@@ -7,8 +7,8 @@ exports.config = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 exports.config = {
-    port: process.env.PORT || 5000,
-    nodeEnv: process.env.NODE_ENV || 'development',
-    mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/safar',
+    port: process.env.PORT,
+    nodeEnv: process.env.NODE_ENV || "development",
+    mongodbUri: process.env.MONGODB_URI,
 };
 //# sourceMappingURL=index.js.map
