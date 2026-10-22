@@ -1,7 +1,7 @@
 import serverless from "serverless-http";
 import mongoose from "mongoose";
 import app from "../../src/app";
-import { config } from "../../src/config";
+import { config } from "../../src/config/index";
 
 const serverlessApp = serverless(app, {
   basePath: "/.netlify/functions/api",
