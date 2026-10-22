@@ -2,7 +2,9 @@
   command = "npm install"
   publish = "public"
   functions = "netlify/functions"
-
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "FRONTEND_URL"
+  
 [functions]
   node_bundler = "esbuild"
 
